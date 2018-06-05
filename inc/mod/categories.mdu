@@ -1,0 +1,204 @@
+<?php
+$query = $sql->select(array('table' => 'categories', 'orderby' => array('id', 'ASC')));
+
+function tmp_category_menu($type = ''){
+global $row, $catid, $PHP_SELF, $query, $action, $echo;
+
+	foreach ($query as $row){
+		$real[$row['id']] = $row['name'];
+
+		if ($catid == $row['id'] and $action == 'edit'){
+			$parent	  = $row['parent'];
+			$template = $row['template'];
+		}
+	}
+
+	foreach ($query as $row){
+		if ($catid != $row['id']){
+			$cats_list .= '<option value="'.$row['id'].'"'.($row['id'] == $parent ? ' selected' : '').'>'.$row['name'].'</option>';
+		}
+	}
+
+	$handle	 = opendir(rootpath.'/data/tpl');
+	while ($file = readdir($handle)){
+		$tpl = substr($file, 0, -4);
+
+		if (substr($file, -3) == 'tpl'){
+			$templates_list .= '<option value="'.$tpl.'"'.($template == $tpl ? ' selected' : '').'>'.$tpl.'</option>';
+		}
+	}
+
+	ob_start();
+
+	if ($catid){
+		foreach ($query as $row){
+			if ($catid == $row['id'] and $action == 'edit'){
+				$id		  = $row['id'];
+				$name	  = $row['name'];
+				$url	  = $row['url'];
+				$icon	  = $row['icon'];
+				$template = $row['template'];
+			}
+		}
+	}
+?>
+
+<form action="<?=$PHP_SELF; ?>?mod=categories" method="post">
+<table border="0" width="1" class="panel">
+<tr>
+ <td width="64"><?=$echo['name']; ?>
+ <td width="341"><input value="<?=$name; ?>" type="text" name="name">
+<tr>
+ <td width="64"><?=$echo['url']; ?>
+ <td width="341"><input value="<?=$url; ?>" type="text" name="url">
+<tr>
+ <td width="64"><?=$echo['icon']; ?>
+ <td width="341"><input value="<?=$icon; ?>" type="text" name="icon">
+<tr>
+ <td width="64"><?=$echo['parent']; ?>
+ <td width="341">
+  <select size="1" name="parent">
+	<option value="">...</option>
+	<?=$cats_list; ?>
+  </select>
+<tr>
+ <td width="64"><?=$echo['template']; ?>
+ <td width="341">
+  <select size="1" name="template">
+	<option value="">...</option>
+	<?=$templates_list; ?>
+  </select>
+<tr>
+ <td width="64">
+ <td width="341"><input type="submit" value="<?=$echo['add']; ?>">
+</table>
+<input type="hidden" name="action" value="<?=$type; ?>">
+<input type="hidden" name="catid" value="<?=$catid; ?>">
+</form>
+
+<?
+	$return = ob_get_contents();
+	ob_end_clean();
+
+return $return;
+}
+
+// ********************************************************************************
+// Add New Category
+// ********************************************************************************
+if ($action == 'add' and $name){
+	foreach ($query as $row){
+		if ($row['name'] == $name and !$parent){
+			msg('error', $echo['error'], $echo['nameError'], $PHP_SELF.'?mod=categories');
+		}
+	}
+
+	$sql->insert(array(
+	'table'	 => 'categories',
+	'values' => array(
+				'id'	   => $query[(count($query) - 1)]['id'] + 1,
+				'name'	   => $name,
+				'icon'	   => $icon,
+				'url'	   => ($url ? $url : totranslit($name)),
+				'parent'   => $parent,
+				'template' => $template
+				)
+	));
+}
+
+// ********************************************************************************
+// Remave Category
+// ********************************************************************************
+if ($action == 'remove' and $catid){
+
+	foreach (explode(',', category_get_children($catid)) as $catid_with_children){
+		$sql->delete(array(
+		'table' => 'categories',
+		'where' => array("id = $catid_with_children")
+		));
+	}
+}
+
+// ********************************************************************************
+// Edit Category
+// ********************************************************************************
+if ($action == 'edit' and $catid){
+	foreach ($query as $row){
+		if ($row['id'] == $catid){
+			msg('options', $echo['edit'], tmp_category_menu('doedit'));
+		}
+	}
+} elseif ($action == 'doedit' and $catid and $name){
+	$sql->update(array(
+	'table'	 => 'categories',
+	'where'	 => array("id = $catid"),
+	'values' => array(
+				'name'	   => $name,
+				'icon'	   => $icon,
+				'url'	   => ($url ? $url : totranslit($name)),
+				'parent'   => $parent,
+				'template' => $template
+				)
+	));
+}
+
+// ********************************************************************************
+// Show Categories
+// ********************************************************************************
+echoheader('options', $echo['header']);
+?>
+
+<table border="0" cellpading="0" cellspacing="0" width="600">
+ <td width="321" height="33"><b><?=$echo['addNew']; ?></b>
+ <?=tmp_category_menu('add'); ?>
+ <td width="320" height="33">
+ <table cellspacing="0" cellpadding="0">
+  <tr>
+   <td width="25"><img border="0" src="skins/images/help_small.gif"></td>
+   <td>&nbsp;<a onClick="javascript:Help('categories')" href="#"><?=$echo['help']; ?></a>
+ </table>
+ <br />
+ <tr>
+  <td width="654" colspan="2" height="11"><img border="0" src="skins/images/blank.gif" width="1" height="20">
+
+<?
+$caterories_list = category_get_tree('&nbsp;', '<tr [php]cute_that()[/php]>
+	<td>&nbsp;<b>{id}</b>
+	<td>{prefix}{name}
+	<td>{url}
+	<td>{icon}
+	<td>{template}
+	<td><a href="?mod=categories&amp;action=edit&amp;catid={id}">'.$echo['actionEdit'].'</a>&nbsp;<a href="javascript:confirmDelete(\'?mod=categories&amp;action=remove&amp;catid={id}\')">'.$echo['actionDelete'].'</a>');
+
+if (!$caterories_list){
+?>
+
+<tr>
+ <td width="654" colspan="2" height="14"><p align="center"><?=$echo['empty']; ?>
+
+<?
+} else {
+?>
+
+<tr>
+ <td width="654" colspan="2" height="14"><b><?=$echo['list']?></b>
+<tr>
+ <td width="654" colspan="2" height="1">
+  <table width="100%" height="100%" cellspacing="2" cellpadding="2">
+   <tr>
+	<td width="3%" class="panel">&nbsp;<b>#</b>
+	<td width="25%" class="panel"><b><?=$echo['name']?></b>
+	<td width="30%" class="panel"><b><?=$echo['url']?></b>
+	<td width="20%" class="panel"><b><?=$echo['icon']?></b>
+	<td width="20%" class="panel"><b><?=$echo['template']?></b>
+	<td width="20%" class="panel"><b><?=$echo['action']?></b>
+	<?=$caterories_list; ?>
+  </table>
+
+<?
+}
+?>
+
+</table>
+
+<? echofooter(); ?>

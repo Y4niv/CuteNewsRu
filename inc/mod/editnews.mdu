@@ -1,0 +1,674 @@
+<?php
+// ********************************************************************************
+// List all news available for editing
+// ********************************************************************************
+if (!$id and !$action){
+	echoheader('editnews', $echo['headerList']);
+
+	foreach ($sql->select(array('table' => 'categories')) as $row){
+		$cat[$row['id']] = $row['name'];
+	}
+
+	if (!$news_per_page){
+		$news_per_page = 21;
+	}
+
+	if (!$sort and !$orderby){
+		$sortnews = array('id', 'DESC');
+	} else {
+		$sortnews = array($sort, $orderby);
+	}
+
+	if ($category or $author or $member['level'] == 3 or $not_published){
+		foreach ($sql->select(array('table' => 'news', 'orderby' => $sortnews)) as $row){
+			$cat_arr = explode(',', $row['category']);
+
+			if ((!$category or in_array($category, $cat_arr)) and (!$author or $row['author'] == $author) and ($member['level'] != 3 or $row['author'] == $member['username']) and (!$not_published or $not_published and $row['hidden'])){
+				 $all_db_tmp[] = $row;
+			}
+		}
+	} else {
+		$all_db_tmp = $sql->select(array('table' => 'news', 'orderby' => $sortnews));
+	}
+
+	$all_db = $all_db_tmp;
+	$start_from = ($start_from ? $start_from : '');
+	$flag = 1;
+	$i = $start_from;
+	$entries_showed = 0;
+
+	if ($all_db){
+		foreach ($all_db as $row){
+			if ($j < $start_from){
+				$j++;
+				continue;
+			}
+
+			$i++;
+
+			if (strlen($row['title']) > 30){
+				$row['title'] = substr($row['title'], 0, 26).'...';
+			}
+
+			if ($row['hidden']){
+				$row['title'] .= $echo['status'];
+			}
+
+			$bg = cute_that();
+			$entries .= '<tr>
+			<td height="1" '.$bg.' align="center">'.$row['id'].'
+			<td height="18" '.$bg.'>'.date('d.m.Y', $row['date']).' - <a href="'.$PHP_SELF.'?mod=editnews&amp;id='.$row['id'].'">'.replace_news('show', $row['title']).'</a>
+			<td height="18" '.$bg.' align="center">';
+
+			if (!$row['comments']){
+				$entries .= '<font color="gray">'.$row['comments'].'</font>';
+			} else {
+				$entries .= $row['comments'];
+			}
+
+			$entries .= '<td height="18" '.$bg.'>&nbsp;';
+			$cat_arr  = explode(',', $row['category']);
+
+			if (!$cat_arr[0]){
+				$my_cat = '<font color="gray">---</font>';
+			} elseif (!$cat[$cat_arr[0]]){
+				$my_cat = '<font color="red">'.$echo['wrongCatID'].'</font>';
+			} else {
+				$my_cat = '';
+				foreach($cat_arr as $tmp_cat){
+					$my_cat[] = $cat[$tmp_cat];
+				}
+
+				$my_cat = join(', ', $my_cat);
+			}
+
+			$entries .= $my_cat.'<td height="18" '.$bg.'>'.$row['author'].'
+			<td height="10" align="center" '.$bg.'><input name="selected_news[]" value="'.$row['id'].'" type="checkbox">';
+
+			$entries_showed++;
+
+			if ($i >= $news_per_page + $start_from){
+				break;
+			}
+		}
+	}
+
+///////////////////////////////////////////
+// Options Bar
+?>
+
+<table class="panel" border="0" cellpading="0" cellspacing="0" width="99%">
+ <tr>
+  <td><?=sprintf($echo['showed'], $entries_showed, count($all_db)).($category ? sprintf($echo['fromCategory'], $cat[$category]) : ''); ?>
+  <td><p align="right"><a href="javascript:ShowOrHide('sort_options', '')"><?=$echo['showOptions']; ?></a>
+ <tr>
+  <td colspan="2"><div id="sort_options" style="display:none;z-index:1;">
+   <form action="<?=$PHP_SELF; ?>?mod=editnews" method="post" name="options_bar">
+   <table width="100%" cellspacing="0" cellpadding="0">
+	<tr>
+	 <td height="1" style="border-top: 1px dashed silver" width="100%" align="right" colspan="3"><p align="center">&nbsp;
+	 <tr>
+	  <td height="1" width="182" colspan="3">
+	<tr>
+	 <td height="1" width="284" align="right"><?=$echo['showCategory']; ?>
+	 <td height="1" width="178"><select name="category" ><option selected value=""><?=$echo['showAll']; ?></option>
+
+<?
+	foreach($sql->select(array('table' => 'categories')) as $row){
+		echo '<option'.($category == $row['id'] ? ' selected' : '').' value="'.$row['id'].'">'.$row['name'].'</option>';
+	}
+?>
+
+</select>
+<td height="1" width="180" >
+
+<?
+	if ($member['level'] != 3){
+?>
+
+<tr>
+ <td height="1" width="284" align="right" ><?=$echo['showAuthor']; ?>
+ <td height="1" width="178">
+  <select name="author" size="1">
+   <option value=""><?=$echo['showAll']; ?></option>
+
+<?
+		foreach ($sql->select(array('table' => 'users')) as $row){
+			if ($row['level'] != 4){
+				echo '<option '.(($author and $author == $row['username']) ? 'selected' : '').' value="'.$row['username'].'">'.($row['name'] ? $row['name'] : $row['username']).'</option>';
+			}
+		}
+?>
+
+</select>
+<td height="1" width="180">
+<tr>
+ <td height="1" width="284" align="right" ><?=$echo['showNews']; ?>
+ <td height="1" width="178">
+  <select name="not_published" size="1">
+   <option value=""><?=$echo['showAll']; ?></option>
+   <option value="on"<?=($not_published ? ' selected' : ''); ?>><?=$echo['showNotModerate']; ?></option>
+  </select>
+<td height="1" width="180">
+
+<?
+	}
+?>
+
+<tr>
+ <td height="1" width="284" align="right"><?=$echo['showSort']; ?>
+ <td height="1" width="178">
+  <select size="1" name="sort">
+   <option value="id"><?=$echo['showSortID']; ?></option>
+   <option value="date"<?=($sort == 'date' ? ' selected' : ''); ?>><?=$echo['showSortDate']; ?></option>
+   <option value="comments"<?=($sort == 'comments' ? ' selected' : ''); ?>><?=$echo['showSortComments']; ?></option>
+  </select>
+  <select size="1" name="orderby">
+   <option value="DESC"><?=$echo['showOrderByDESC']; ?></option>
+   <option value="ASC"<?=($orderby == 'ASC' ? ' selected' : ''); ?>><?=$echo['showOrderByASC']; ?></option>
+  </select>
+ <td height="1" width="180">
+
+<tr>
+ <td height="1" width="284" align="right"><?=$echo['showNewsOnPage']; ?>
+ <td height="1" width="178"><input style="text-align: center" name="news_per_page" value="<?=$news_per_page; ?>" type="text" size="3">
+ <td height="1" width="180">
+<tr>
+ <td height="1" width="284" align="right">
+ <td height="1" width="178"><br /><input type="submit" value="<?=$echo['show']; ?>">
+ <td height="1" width="180">
+</table>
+</form>
+</div>
+</table>
+
+<?
+// End Options Bar
+////////////////////////////////////////////////////////////////////////////////	Showing List of News
+	if (!$entries_showed){
+?>
+
+<form method="post" name="editnews">
+<table border="0" cellpading="0" cellspacing="0" width="100%">
+ <td colspan="6"><p style="border: solid black 1px;	 margin: 22px 22px 22px 22px; padding: 4px 4px 4px 4px;" align="center"><?=$echo['showedEmpty']; ?></p>
+
+<?
+	} else {
+?>
+
+<form method="post" name="editnews">
+<table border="0" cellspacing="2" cellspacing="1" width="99%">
+ <tr>
+  <td width="1" align="center"><b>&nbsp;#&nbsp;
+  <td width="350"><b><?=$echo['showedTitle']; ?>
+  <td width="10"><b><?=$echo['showedComments']; ?>
+  <td width="150"><b><?=$echo['showedCategory']; ?>
+  <td width="70"><b><?=$echo['showedAuthor']; ?>
+  <td width="10" align="center"><input type="checkbox" name="master_box" title="<?=$echo['checkall']; ?>" onclick="javascript:ckeck_uncheck_all('editnews')">&nbsp;
+
+<?
+}
+
+echo $entries;
+
+if ($start_from > 0){
+	$previous = $start_from - $news_per_page;
+	$npp_nav .= '<a href="'.$PHP_SELF.'?mod=editnews&amp;start_from='.$previous.'&amp;category='.$category.'&amp;author='.$author.'&amp;news_per_page='.$news_per_page.'&amp;sort='.$sort.'&amp;orderby='.$orderby.'&amp;not_published='.$not_published.'">'.$echo['prev'].'</a>';
+}
+
+if (count($all_db) > $news_per_page){
+	$npp_nav .= ' [ ';
+	$enpages_count = @ceil(count($all_db) / $news_per_page);
+	$enpages_start_from = 0;
+	$enpages = '';
+
+	for ($j = 1; $j <= $enpages_count; $j++){
+		if ($enpages_start_from != $start_from){
+			$enpages .= '<a href="'.$PHP_SELF.'?mod=editnews&amp;start_from='.$enpages_start_from.'&amp;category='.$category.'&amp;author='.$author.'&amp;news_per_page='.$news_per_page.'&amp;sort='.$sort.'&amp;orderby='.$orderby.'&amp;not_published='.$not_published.'">'.$j.'</a> ';
+		} else {
+			$enpages .= ' <b> <u>'.$j.'</u> </b> ';
+		}
+
+		$enpages_start_from += $news_per_page;
+	}
+
+	$npp_nav .= $enpages;
+	$npp_nav .= ' ] ';
+}
+
+
+if (count($all_db) > $i){
+	$npp_nav .= '<a href="'.$PHP_SELF.'?mod=editnews&amp;start_from='.$i.'&amp;category='.$category.'&amp;author='.$author.'&amp;news_per_page='.$news_per_page.'&amp;sort='.$sort.'&amp;orderby='.$orderby.'&amp;not_published='.$not_published.'">'.$echo['next'].'</a>';
+}
+
+if ($entries_showed){
+?>
+
+ <tr>
+  <td colspan="6" align="right">&nbsp;
+ <tr>
+  <td colspan="3"><?=$npp_nav; ?>
+  <td colspan="3" align="right">
+   <select name="action">
+	<option value=""><?=$echo['actionChoice']; ?></option>
+	<option value="delete"><?=$echo['actionDelete']; ?></option>
+	<option value="movetocat"><?=$echo['actionChangeCategory']; ?></option>
+
+<?
+	if ($member['level'] < 3){
+?>
+
+	<option value="publish"><?=$echo['actionPublish']; ?></option>
+
+<?
+	}
+?>
+
+   </select>
+
+   <input type="hidden" name="mod" value="editnews">
+   <input type="submit" value="OK">
+
+<?
+}
+?>
+
+ <tr>
+  <td colspan="1">
+ <tr>
+  <td colspan="5">
+</table>
+</form>
+
+<?
+	echofooter();
+}
+
+$have_perm	= 0;
+$moved_news = 0;
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Mass Delete
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'delete'){
+	if (!$selected_news){
+		msg('error', $echo['error'], $echo['newsNotChoicen'], $PHP_SELF.'?mod=editnews');
+	}
+
+	echoheader('options', $echo['headerDelete']);
+?>
+
+<form method="post" action="<?=$PHP_SELF; ?>">
+<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%">
+ <tr>
+  <td><?=sprintf($echo['sureDelete'], count($selected_news)); ?>
+   <br /><br />
+   <input type="button" value="	  <?=$echo['sayNo']; ?>	  " onclick="javascript:document.location='<?=$PHP_SELF; ?>?mod=editnews'"> &nbsp; <input type="submit" value="	  <?=$echo['sayYes']; ?>   ">
+   <input type="hidden" name="action" value="dodelete">
+   <input type="hidden" name="mod" value="editnews">
+
+<?
+	foreach ($selected_news as $newsid){
+?>
+
+<input type="hidden" name="selected_news[]" value="<?=$newsid; ?>">
+
+<?
+	}
+?>
+
+</table>
+</form>
+
+<?
+	echofooter();
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Do Mass Delete
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'dodelete'){
+	if (!$selected_news){
+		msg('error', $echo['error'], $echo['newsNotChoicen'], $PHP_SELF.'?mod=editnews');
+	}
+
+	foreach ($sql->select(array('table' => 'news', 'select' => array('id', 'author'))) as $row){
+		if (@in_array($row['id'], $selected_news)){
+			$sql->delete(array(
+			'table' => 'news',
+			'where' => array("id = $row[id]"),
+			));
+
+			if (($member['level'] == 1) or ($member['level'] == 2)){
+				$have_perm = 1;
+			} elseif ($member['level'] == 3 and $row['author'] == $member['username']){
+				$have_perm = 1;
+			}
+
+			if ($have_perm){
+				$moved_news++;
+				run_actions('mass-deleted');
+			}
+		}
+	}
+
+	if ($have_perm){
+		foreach ($selected_news as $delete){
+			$sql->delete(array(
+			'table' => 'comments',
+			'where' => array("post_id = $delete"),
+			));
+
+			$sql->delete(array(
+			'table' => 'story',
+			'where' => array("post_id = $delete"),
+			));
+		}
+	}
+
+	run_actions('deleted-multiple-entries');
+	msg('info', $echo['headerDelete'], sprintf($echo['deletedNewsComplete'], $moved_news, count($selected_news)), $PHP_SELF.'?mod=editnews');
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Mass Move to Cat
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'movetocat'){
+	if (!$selected_news){
+		msg('error', $echo['error'], $echo['newsNotChoicen'], $PHP_SELF.'?mod=editnews');
+	}
+
+	echoheader('options', $echo['headerChangeCategory']);
+?>
+
+<form action="<?=$PHP_SELF; ?>" method="post">
+<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%">
+ <tr>
+  <td><?=sprintf($echo['changeCategory'], count($selected_news)); ?>
+   <select name="move_to_category"><option value=""> </option>
+   <?=category_get_tree('&nbsp;', '<option value="{id}">{prefix}{name}</option>'); ?>
+   </select>
+
+<?
+	foreach ($selected_news as $newsid){
+?>
+
+<input type="hidden" name="selected_news[]" value="<?=$newsid; ?>">
+
+<?
+	}
+?>
+
+<input type="hidden" name="action" value="domovetocat">
+<input type="hidden" name="mod" value="editnews">
+<input type="submit" value="OK">
+</table>
+</form>
+
+<?
+	echofooter();
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  DO Mass Move to One Category
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'domovetocat'){
+	if (!$selected_news){
+		msg('error', $echo['error'], $echo['newsNotChoicen'], $PHP_SELF.'?mod=editnews');
+	}
+
+	foreach ($selected_news as $news_to_cat){
+		$sql->update(array(
+		'table'	 => 'news',
+		'where'	 => array("id = $news_to_cat"),
+		'values' => array('category' => $move_to_category)
+		));
+
+		$moved_news++;
+	}
+
+	msg('info', $echo['headerChangeCategory'], sprintf($echo['changeNewsComplete'], $moved_news, count($selected_news)), $PHP_SELF.'?mod=editnews');
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Mass Publish
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'publish'){
+	if (!$selected_news){
+		msg('error', $echo['error'], $echo['newsNotChoicen'], $PHP_SELF.'?mod=editnews');
+	}
+
+	echoheader('options', $echo['headerPublish']);
+?>
+
+<form method="post" action="<?=$PHP_SELF; ?>">
+<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%">
+ <tr>
+  <td><?=sprintf($echo['surePublish'], count($selected_news)); ?>
+   <br /><br />
+   <input type="button" value="	  <?=$echo['sayNo']; ?>	  " onclick="javascript:document.location='<?=$PHP_SELF; ?>?mod=editnews'"> &nbsp; <input type="submit" value="	  <?=$echo['sayYes']; ?>   ">
+   <input type="hidden" name="action" value="dopublish">
+   <input type="hidden" name="mod" value="editnews">
+
+<?
+	foreach ($selected_news as $newsid){
+?>
+
+<input type="hidden" name="selected_news[]" value="<?=$newsid; ?>">
+
+<?
+	}
+?>
+
+</table>
+</form>
+
+<?
+	echofooter();
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  DO Mass Publish News
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'dopublish'){
+	if (!$selected_news){
+		msg('error', $echo['error'], $echo['newsNotChoicen'], $PHP_SELF.'?mod=editnews');
+	}
+
+	foreach ($selected_news as $publish){
+		$sql->update(array(
+		'table'	 => 'news',
+		'where'	 => array("id = $publish"),
+		'values' => array('hidden' => false)
+		));
+
+		$moved_news++;
+	}
+
+	msg('info', $echo['headerPublish'], sprintf($echo['publishNewsComplete'], $moved_news, count($selected_news)), $PHP_SELF.'?mod=editnews');
+}
+
+// ********************************************************************************
+// Edit News Article
+// ********************************************************************************
+if ((!$action and $id) or $action == 'editnews'){
+	if (!$query = $sql->select(array('table' => 'news', 'where' => array("id = $id")))){
+		msg('error', $echo['error'], sprintf($echo['notFound'], $id));
+	}
+
+	foreach ($query as $row){
+		if ($member['level'] > 2 and $row['author'] != $member['username']){
+			header('Location: '.$PHP_SELF.'?mod=editnews');
+			exit;
+		}
+
+		echoheader('editnews', sprintf($echo['header'], replace_news('show', $row['title'])));
+
+		$story = reset(
+				 $sql->select(array(
+				 'table' => 'story',
+				 'where' => array("post_id = $id")
+				 )));
+?>
+
+<form method="post" name="addnews" action="<?=$PHP_SELF; ?>" onsubmit="return process_form(this)">
+
+<!-- заголовок -->
+<fieldset id="title"><legend><?=$echo['title']; ?></legend>
+<input type="text" name="title" tabindex="1" value="<?=htmlspecialchars(replace_news('admin', $row['title'])); ?>">
+</fieldset>
+
+<!-- короткая -->
+<fieldset id="short"><legend><?=$echo['short']; ?></legend>
+
+<?
+	echo run_filters('edit-advanced-options', 'short');
+?>
+
+<?=insertTag('short'); ?>
+<?=insertSmilies('short', 23); ?>
+<textarea name="short_story" tabindex="4"><?=htmlspecialchars(replace_news('admin', $story['short'])); ?></textarea>
+</fieldset>
+
+<!-- полная -->
+<fieldset id="full"><legend><?=$echo['full']; ?></legend>
+
+<?
+	echo run_filters('edit-advanced-options', 'full');
+?>
+
+<?=insertTag('full'); ?>
+<?=insertSmilies('full', 23); ?>
+<textarea name="full_story" tabindex="5"><?=htmlspecialchars(replace_news('admin', $story['full'])); ?></textarea>
+</fieldset>
+
+<!-- кнопки -->
+<fieldset id="actions"><legend><?=$echo['actions']; ?></legend>
+<input type="submit" value="<?=$echo['edit']; ?>" accesskey="s">
+<input type="button" onclick="preview('editnews');" value="<?=$echo['preview']; ?>" accesskey="p">
+<input type="button" onclick="javascript:confirmDelete('?mod=editnews&amp;action=delete&amp;selected_news[]=<?=$id; ?>')" value="<?=$echo['remove']; ?>" accesskey="d">
+</fieldset>
+
+<fieldset id="options"><legend><?=$echo['options']; ?></legend><div>
+
+<?
+		if ($config_use_avatar == 'yes'){
+?>
+
+<fieldset id="avatar"><legend><?=$echo['avatar']; ?></legend>
+<input onchange="showpreview(this.value, 'previewimage')" tabindex="2" type="text" name="avatar" value="<?=$row['avatar']; ?>">
+<img name="previewimage" src="<?=($row['avatar'] ? $row['avatar'] : 'skins/images/blank.gif'); ?>" align="left" style="margin: 5px;">
+</fieldset>
+
+<?
+		}
+?>
+
+<fieldset id="date"><legend><?=$echo['date']; ?></legend>
+<input type="text" name="day" maxlength="2" value="<?=date('d', $row['date']); ?>" title="<?=$echo['calendar']['day']; ?>">
+
+<select name="month" title="<?=$echo['calendar']['month']; ?>">
+
+<?
+		foreach (array('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec') as $v){
+			echo '<option value="'.$v.'"'.($v == strtolower(date('M', $row['date'])) ? ' selected' : '').'>'.$echo['calendar'][$v].'</option>';
+		}
+?>
+
+</select>
+
+<input type="text" name="year" maxlength="4" value="<?=date('y', $row['date']); ?>" title="<?=$echo['calendar']['year']; ?>"> <input type="text" name="hour" maxlength="2" value="<?=date('H', $row['date']); ?>" title="<?=$echo['calendar']['hour']; ?>">:<input type="text" name="minute" maxlength="2" value="<?=date('i', $row['date']); ?>" title="<?=$echo['calendar']['minute']; ?>">:<input type="text" name="second" maxlength="2" value="<?=date('s', $row['date']); ?>" title="<?=$echo['calendar']['second']; ?>">
+</fieldset>
+
+<?
+	echo run_actions('edit-advanced-options');
+?>
+
+</div></fieldset>
+
+<input type="hidden" name="id" value="<?=$id; ?>">
+<input type="hidden" name="mod" value="editnews">
+<input type="hidden" name="action" value="doeditnews">
+</form>
+
+<?
+		if ($query = $sql->select(array('table' => 'comments', 'where' => array("post_id = $id"), 'orderby' => array('date', 'ASC')))){
+?>
+
+<!-- комментарии -->
+<fieldset id="comments"><legend><?=$echo['comments']; ?></legend>
+<form method="post" name="comments" action="<?=$PHP_SELF; ?>">
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+
+<?
+			foreach ($query as $k => $row){
+?>
+
+<tr style="padding: 3px;">
+ <td><a href="#" title="<?=$echo['date'].': '.langdate('d M Y H:i', $row['date'])."\nIP: $row[ip]\n".$echo['author'].": $row[author]\nE-mail: $row[mail]\n".$echo['comment'].": $row[comment]\n".$echo['reply'].": $row[reply]"; ?>" onclick="window.open('<?=$PHP_SELF; ?>?mod=editcomments&amp;newsid=<?=$id; ?>&amp;comid=<?=$row['id']; ?>', '_Comments', 'height=420,resizable=yes,scrollbars=yes,width=410');return false;">#<?=($k + 1).' '.$row['author']; ?></a>
+ <td><input type="checkbox" name="delcomid[]" value="<?=$row['id']; ?>">
+
+<?
+			}
+?>
+
+<tr style="padding: 3px;">
+ <td><input type="submit" value="<?=$echo['delete']; ?>">
+ <td><input type="checkbox" name="master_box" title="<?=$echo['checkall']; ?>" onclick="javascript:ckeck_uncheck_all('comments')">
+</table>
+
+<input type="hidden" name="newsid" value="<?=$id; ?>">
+<input type="hidden" name="deletecomment" value="yes">
+<input type="hidden" name="action" value="dodeletecomment">
+<input type="hidden" name="mod" value="editcomments">
+</form>
+</fieldset>
+
+<?
+		}
+
+		echofooter();
+	}
+}
+
+// ********************************************************************************
+// Do add News to DB
+// ********************************************************************************
+if ($action == 'doeditnews'){
+	if (($added_time = strtotime($day.' '.$month.' '.$year.' '.$hour.':'.$minute.':'.$second)) == -1){
+		$added_time = (time() + $config_date_adjust * 60);
+	}
+
+	if (!$title){
+		$title = substr($short_story, 0, 10).'...';
+	}
+
+	run_actions('edit-save-entry');
+
+	$sql->update(array(
+	'table'	 => 'news',
+	'where'	 => array("id = $id"),
+	'values' => array(
+				'date'	   => $added_time,
+				'title'	   => replace_news('add', $title),
+				'short'	   => strlen(replace_news('add', $short_story)),
+				'full'	   => strlen(replace_news('add', $full_story)),
+				'avatar'   => $avatar,
+				'category' => $category,
+				'url'	   => ($url ? namespace($url) : namespace(totranslit($title))),
+				'hidden'   => (($config_approve_news == 'yes' and $member['level'] > 2) ? true : false)
+				)
+	));
+
+	$sql->update(array(
+	'table'	 => 'story',
+	'where'	 => array("post_id = $id"),
+	'values' => array(
+				'short' => replace_news('add', $short_story),
+				'full'	=> replace_news('add', $full_story)
+				)
+	));
+
+	msg('info', $echo['headerEdited'], sprintf($echo['editedComplete'], $title), $PHP_SELF.'?mod=editnews&amp;id='.$id);
+}
+?>

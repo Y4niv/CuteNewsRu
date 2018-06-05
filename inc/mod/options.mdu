@@ -1,0 +1,102 @@
+<?php
+// ********************************************************************************
+// Options
+// ********************************************************************************
+if (!$action){
+	echoheader('options', $echo['header']);
+
+	// access means the lower level of user allowed; 1:admin, 2:editor+admin, 3:editor+admin+journalist, 4:all
+	$options = array(
+				array(
+				'name'	 => $echo['personal'],
+				'url'	 => $PHP_SELF.'?mod=personal',
+				'access' => 4
+				),
+
+				array(
+				'name'	 => $echo['ipban'],
+				'url'	 => $PHP_SELF.'?mod=ipban',
+				'access' => 1
+				),
+
+				array(
+				'name'	 => $echo['syscon'],
+				'url'	 => $PHP_SELF.'?mod=syscon',
+				'access' => 1
+				),
+
+				array(
+				'name'	 => $echo['templates'],
+				'url'	 => $PHP_SELF.'?mod=templates',
+				'access' => 1
+				),
+
+				array(
+				'name'	 => $echo['editusers'],
+				'url'	 => $PHP_SELF.'?mod=editusers',
+				'access' => 1
+				),
+
+				array(
+				'name'	 => $echo['images'],
+				'url'	 => $PHP_SELF.'?mod=images',
+				'access' => 3
+				),
+
+				array(
+				'name'	 => $echo['categories'],
+				'url'	 => $PHP_SELF.'?mod=categories',
+				'access' => 1
+				),
+
+				array(
+				'name'	 => $echo['snr'],
+				'url'	 => $PHP_SELF.'?mod=snr',
+				'access' => 1
+				),
+
+				array(
+				'name'	 => $echo['plugins'],
+				'url'	 => $PHP_SELF.'?mod=plugins',
+				'access' => 1
+				)
+			   );
+
+	$options = run_filters('cutenews-options', $options);
+	for ($i = 0; $i < count($options); $i++){
+		if ($member['level'] > $options[$i]['access']){
+			$options[$i] = '';
+		}
+	}
+
+	asort($options);
+?>
+
+<table border="0">
+
+<?
+	$i = 0;
+	foreach ($options as $option){
+		if ($option['name']){
+
+			if ($i%2 == 0){
+				echo '<tr>';
+			}
+?>
+
+<td nowrap>&nbsp;&nbsp;&nbsp;<a href="<?=$option['url']; ?>"><b><?=$option['name']; ?></b></a>
+
+<?
+			$i++;
+		}
+	}
+?>
+
+</table>
+
+<?
+	echofooter();
+} else {
+	run_actions('plugin-options');
+}
+?>

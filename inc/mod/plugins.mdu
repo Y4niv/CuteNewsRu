@@ -1,0 +1,70 @@
+<?php
+// ********************************************************************************
+// Plugins
+// ********************************************************************************
+echoheader('options', $echo['header']);
+
+$available_plugins = available_plugins();
+
+function SortByName($a, $b){
+return ($a['name'] > $b['name'] ? 1 : -1);
+}
+
+uasort($available_plugins, 'SortByName');
+
+if ($_GET['enable']){
+	$id = stripslashes($_GET['enable']) - 1;
+	$filename = $available_plugins[$id]['file'];
+	cache_remover();
+	enable_plugin($filename);
+?>
+
+<p><?=$echo['enabled']; ?>: <b><?=$available_plugins[$id]['name']; ?></b></p>
+
+<?
+}
+
+if ($_GET['disable']){
+	$id = stripslashes($_GET['disable']) - 1;
+	$filename = $available_plugins[$id]['file'];
+	cache_remover();
+	disable_plugin($filename);
+?>
+
+<p><?=$echo['disabled']; ?>: <b><?=$available_plugins[$id]['name']; ?></b></p>
+
+<?
+}
+?>
+
+<table id="plugins">
+ <thead>
+  <th><?=$echo['name']; ?>
+  <th><?=$echo['version']; ?>
+  <th><?=$echo['description']; ?>
+  <th><?=$echo['author']; ?>
+  <th><?=$echo['action']; ?>
+
+<?
+foreach ($available_plugins as $id => $plugin){
+	$id		 = $id + 1;
+	$enabled = plugin_enabled($plugin['file']);
+	$class	 = ($plugin['compatible'] ? ($enabled ? 'enabled' : 'disabled') : 'incompatible');
+?>
+
+ <tr class="<?=$class; ?>"<?=($plugin['compatible'] ? '' : ' title="Framework: '.$plugin['framework'].'"'); ?>'>
+  <td><?=($plugin['uri'] ?	'<a href="'.$plugin['uri'].'">'.$plugin['name'].'</a>': $plugin['name']); ?>
+  <td><?=$plugin['version']; ?>
+  <td><?=run_filters('plugin-description', $plugin['description']); ?>
+  <td><?=($plugin['author_uri'] ?  '<a href="'.$plugin['author_uri'].'">'.$plugin['author'].'</a>': $plugin['author']); ?>
+  <td><?=($plugin['compatible'] ? ($enabled ? '<a href="?mod=plugins&amp;disable='.$id.'">'.$echo['turnOff'].'</a>' : '<a href="?mod=plugins&amp;enable='.$id.'">'.$echo['turnOn'].'</a>') : $echo['error']); ?>
+
+<?
+	}
+?>
+
+</table>
+
+<?
+echofooter();
+?>

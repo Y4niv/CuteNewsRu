@@ -1,0 +1,497 @@
+<?php
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Our Help Sections
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+$help_sections = array();
+$config        = cute_parse_url($config_http_home_url);
+$path          = ($config['path'] ? $config['path'].'/' : '');
+
+
+//----------------------------------
+// Information about CNR
+//----------------------------------
+$help_sections['information'] = <<<HTML
+<h2>Information about the script </h2>
+<p>CuteNews.RU - is a powerfull and simple news script that allows you to publish your news and any content that you wish. The script is built on the core of CuteNews by the <a href="http://cutephp.com">CutePHP
+Team</a>, and it borrows ideas from <a href="http://ajfork.berlios.de">AJ-Fork</a>, another system that is based on CuteNews. Cutenews.RU uses either textfiles (txtSQL) or MySQL to store its data. The system requirements are minimal but the possibilities to use the script are vast.
+You can use CuteNews.Ru to publish your private home page, start blogging, use it as a content management system or anything that is on your mind.</p>
+HTML;
+
+//----------------------------------
+// Help resources
+//----------------------------------
+$help_sections['help'] = <<<HTML
+<h2>Where to get help</h2>
+<p>In addition to this document support is available through the CuteNews.RU English <a href="http://cutenewsru.com">community forum</a>, and through the file entitled "Readme.html" which resides in your main cutenews.ru directory.</p>
+HTML;
+
+//----------------------------------
+// Upgrading
+//----------------------------------
+$help_sections['Upgrade'] = <<<HTML
+	<h2>Upgrading</h2>
+   <h3></a>Upgrade from 02x, CuteNews and AJ-Fork</h3>
+	<p>Upgrade for 024, 025, 026, 027, 028, 029, original CuteNews and AJ-Fork. If you're using AJ-Fork v.168, you need to go to tools/anticonvert.php (inside your AJ-Fork installation) and then use our upgrade.</p>
+	<ol>
+	 <li>Install the script</li>
+	 <li>Put your old folder /data to path/to/convert/02x</li>
+	 <li>CHMOD all tmp-files to 777</li>
+	 <li>Open your browser and go to http://yoursite.com/path/to/convert/</li>
+	 <li>Choose &quot;02x series to 03x series&quot;</li>
+	 <li>Choose what you want to transfer to the new script</li>
+	</ol>
+	<h3></a>Upgrade to newer version of CuteNews.RU</h3>
+	<ol>
+	 <li>Unzip the zip-file to a temporary directory</li>
+	 <li>Delete the data folder and the install folder from this temporary directory</li>
+	 <li>Upload this temporary directory to your server</li>
+	 <li>Go to the admin panel and login as admin - the script will automatically be updated</li>
+	</ol>
+	<h3></a>Update from txtSQL (text version) to MySQL</h3>
+	<ol>
+	 <li>Open your browser and go to http://yoursite.com/path/to/convert/</li>
+	 <li>Choose &quot;txtSQL to MySQL&quot;</li>
+	 <li>Follow the instructions</li>
+	</ol>
+HTML;
+
+//----------------------------------
+// Including the News
+//----------------------------------
+$help_sections['including'] = <<<HTML
+<h2>Including news</h2>
+<p>To be able to display your news on a page, you will have to include a file called "head.php" on the very top of the page in which you are going to display the news:</p>
+<p class="code">include '{$path}path/to/head.php';</p>
+<p><strong>Important:</strong> path/to is the <em>server path</em> to your CuteNews.RU install.</p>
+<p>You will also have to include a file called "show_news.php". This is the file which fetches your news from your database. To include "show_news.php" simply use the following code:</p>
+<p class="code">include \$cutepath.'/show_news.php';</p>
+<p>There are several variables you can use within your include. The following example shows how you can make only 7 news items display.<br /> <strong>Important:</strong> all of these veriables must be put before you include "show_news.php" to work.</p>
+<p class="code">\$number = 7;<br />
+include \$cutepath.'/show_news.php';</p>
+<p>It is also possible to make includes static (making it not open full stories) through the use of \$static. Simply put \$static['name of variable'] to make a varialbe static.</p>
+<p class = "code">\$static['number'] = 7;<br />
+include\$cutepath.'/show_news.php';</p>
+HTML;
+
+//----------------------------------
+// All possible variables while including
+//----------------------------------
+$help_sections['variables'] = <<<HTML
+<h2>Variables you can use with your include</h2>
+   <p>There are several important variables that you should know of. </p>
+   <p class="code"><strong>\$static['variable'] = VALUE;</strong> // tells the script that you don?t want to show entire news.
+This is very, very useful for several cases ( eg. Guestbook ). </p>
+   <p class="code"> \$<strong>template = 'TEMPLATE';</strong>  tells the script which template you want to use.
+For example if you write: \$template = "Headlines" all news in that php include will be displayed as headlines. If you want to use template Default, then you don?t have to declare this variable because it is used by default. </p>
+   <p class="code"> <strong>\$category = 'ID CATEGORIES;'</strong> // tells the script that you want to show news from different categories. You can show several categories, just write: $category = '1,4,7'. This will show only news from category 1, 4 and 7. You can go to Control panel to create, delete and edit your categories. </p>
+
+   <p class="code"> <strong>\$number = NUMBER;</strong> // tells the script the number of news to be displayed on one page. For example: $number = 7; will show 7 news per page.</p>
+   <p class="code"> <strong>\$year</strong>, <strong>\$month</strong>, <strong>\$day</strong>,
+		<strong>\$user</strong> (or <strong>\$author</strong>) are similar to \$category. Those variables serve for sorting news. For example if you write: $month=&quot;12&quot;; $user=&quot;odin&quot;, you will see news only from december and only posted by user &quot;odin&quot; . Of course, everything can be used &quot;together&quot;.</p>
+
+   <p class="code"> <strong>\$skip = SKIP;</strong> // use this variable only when using $number. \$skip tells the script how many news you want to leave out. For example: \$skip = 4; shows your news starting with the fourth news.</p>
+   <p class="code"><strong>\$user_query = URL;</strong> // adds a query to the URL. You find an example of using it in search.php .</p>
+   <p class="code"><strong>\$ucat</strong> // It's analog to \$category but only works with full news. See the example below to understand its use</p>
+   <p class="code"> <strong>\$sort = array('field', 'order');</strong> // tells the script to sort the news by
+		&quot;field&quot; in &quot;order&quot;.</p>
+
+	<p class="code"><strong>\$PHP_SELF = file;</strong> // if rUFUs is turned off you can tell the script where to open the news</p>
+   <p> Variables you can use when using \$sort:<br />
+		<strong>date</strong> - date of news<br />
+		<strong>author</strong> - author of news<br />
+
+		<strong>title</strong> - title<br />
+		<strong>short</strong> - the number of signs in the short story<br />
+		<strong>full</strong> - the number of signs in the full story<br />
+		<strong>category</strong> - category (use id1, id2 and so on )<br />
+
+		<strong>url</strong> - the transliterated title or the value of the field
+		&quot;URL&quot; in addnews/editnews<br />
+		<strong> id</strong> - the identification number of news <br />
+		<strong>views</strong> - number of views<br />
+
+		<strong>comments</strong> number of comments</p>
+   <p>Two possibilities to sort:<br />
+		<strong>ASC</strong> - Ascending<br />
+		<strong>DESC</strong> - Descending</p>
+
+   <p>For example, if you declare \$sort = array('comments', 'DESC') - you will see news sorted from least to largest amount of comments.</p>
+
+HTML;
+
+//----------------------------------
+// Using Multiple Includes
+//----------------------------------
+$help_sections['multiple_includes'] = <<<HTML
+<h2>Using Multiple Includes</h2>
+<p>To employ several includes within one page you can simply include show_news.php several times.</p>
+<p>However if you want e.g Headlines to show the same regardless of if the visitor is viewing an article, you will have to make your include static</p>
+<p>An include can look like this:</p>
+<p class="code">\$number = 5;<br />
+include \$cutepath.'/show_news.php'; <br />
+<br />
+\$static['template'] = 'Headlines';<br />
+\$static['number'] = 7;<br />
+include \$cutepath.'/show_news.php';</p>
+HTML;
+
+//----------------------------------
+// Examples
+//----------------------------------
+$help_sections['examples'] = <<<HTML
+   <h2>Examples</h2>
+   <p>Please go to path/to/example/index.php and take a look at the example file. You will soon understand how everything works.</p>
+   <p>Normal including. It will show all news from all categories,
+		with default sorting (newest on top):</p>
+   <p class="code"> include \$cutepath.'/show_news.php';</p>
+   <p>If you want to show 5 news from category &quot;News&quot; (for example this category's ID is 1) and from category &quot;Articles&quot; (ID 4) as headlines, use this code:</p>
+
+   <p class="code">\$number = 5;<br />
+		\$category = '1,4';<br />
+		\$template = 'Headlines';<br />
+		include \$cutepath.'/show_news.php';</p>
+   <p>A more advanced example: if somebody has opened the full-story,
+		you can show a few (7) headlines from that category below the full story:</p>
+   <p class="code">\$number = 5;<br />
+
+		include \$cutepath.'/show_news.php'; <br />
+		<br />
+		if (\$id and \$ucat){<br />
+		&nbsp;&nbsp;&nbsp;\$static['template'] = 'Headlines';<br />
+		&nbsp;&nbsp;&nbsp;\$static['number'] = 7;<br />
+		&nbsp;&nbsp;&nbsp;\$static['category'] = \$ucat;<br />
+
+		&nbsp;&nbsp;&nbsp;include \$cutepath.'/show_news.php'; <br />
+		}</p>
+HTML;
+
+//----------------------------------
+// Users Section
+//----------------------------------
+$help_sections['users'] = <<<HTML
+<h2>Managing Users</h2>
+In CuteNews.RU users reside within one of four different user levels, each lever depicts what users are allowed to do:<br />
+<ol>
+<li><strong>Administrator</strong> is a user with all priveledges. An administrator can do anything within CuteNews.RU, including managing other users, creating and editing templates and news items.</li>
+<li><strong>Editor</strong> is a class of users who can edit all news entries and comments.</li>
+<li><strong>Journalist</strong> is a class of users who can make new news entries, though they can only edit their own entries.</li>
+<li><strong>Commenter</strong> is a class of user who can only make comments. If you employ the register mod, and let people register, this is the class new users will receive. It is not possible for non-registered users to post with the name of a registered commenter.</li></ol>
+</ol>
+Be carefull when deciding which level users should have, remember that a rogue administrator or editor could ruin your install and/or entries!
+HTML;
+
+//----------------------------------
+// Categories Section
+//----------------------------------
+$help_sections['categories'] = <<<HTML
+<h2>Managing Categories</h2>
+<p>Categories is an easy way of sorting different sort of information within your database. You make categories through your options > manage categories option.<br />
+ In cutenews.ru you can assign a news item to several categories, e.g an item can be classified as both International and Football. You can also use sub-categories. E.g English Football and Italian Football could be sub-categories of Football.</p>
+<p>Within your include code you can determin which categories you want to display. When including a category you have to use the ID number of the category like this:</p> 
+<p class="code">\$category = "<b>2</b>";<br />include \$cutepath.'/show_news.php';</p>
+<p>This include code would only show items within the category with the ID 2. A category's ID can be found within the manage categories option.</p>
+<p>It is also possible to tell CuteNews.RU to include several categories:</p>
+<p class="code">\$category = "<b>2</b>,<b>3</b>,<b>5</b>";<br />include \$cutepath.'/show_news.php';</p>
+<p>This code would show items nested within any or several of the categories with ID 2, 3 and 5.</p>
+<p>Another way of using categories is detail managing. It is possible to make a categories that decides if content goes on the main page, or some other page. E.g a category named "frontpage" could be used to decide if an item should be posted on the frontpage, while a category named "footeball" would decide if an item was to be posted on the football section of a website.</p>
+HTML;
+
+//----------------------------------
+// Templates Section
+//----------------------------------
+$help_sections['templates'] = <<<HTML
+<h2>Managing Templates</h2>
+<p>CuteNews.ru offers an easy to use template system, where you can make your own templates for your news entries. The template manager can be accessed through <strong>options -> manage templates</strong>.
+	The templates use HTML. Keep in mind that you don't need to code a whole website, just the part needed for the news item.
+</p>
+<p>By default there are four available templates: 
+	<ul>
+		<li><strong>Default</strong>: as the name suggests the default template that is used if no other template is specified.</li>
+		<li><strong>Headline</strong>: a template meant for displaying headlines on your website (often used together with the $static variable).</li>
+		<li><strong>Print</strong>: the template that controls the display of the print function within cutenews.ru.</li>
+		<li><strong>rss</strong>: the template which controls the coding of the RSS feed.</li>
+	</ul>
+	In addition to these you can also create your own templates easily through the create template button.
+</p>
+<p>When creating or editing a template there are several variables that you can use: 
+	<ul>
+		<li><strong>{author}</strong>: displays the name of the author of a news item/comment.</li>
+		<li><strong>{avatar}</strong>: displays the avatar of the news avatar(image) or a commenters avatar.</li>
+		<li><strong>{title}</strong>: displays the title of a news item/comment.</li>
+		<li><strong>{short-story}</strong>: displays the short version (the part you typed into the short news box) of a news item.</li>
+		<li><strong>{full-story}</strong>: displays the full version (the part you typed into the full news box) of a news item.</li>
+	</ul>
+	In addition to these there are several others, most are explained within the template manager.
+</p>
+<p>To display a certain template use the following code:</p>
+<p class="code">\$template = "my_test_template";<br />include \$cutepath.'/show_news.php';</p>
+<p>Change my_test_template to the exact name of the template you want to use. Template names are case sensitive.</p>
+HTML;
+
+//----------------------------------
+// Search & Replace Section
+//----------------------------------
+$help_sections['snr'] = <<<HTML
+<h2>Search and Replace</h2>
+<p>This fuction enables you to search for and replace elements within all your news entries. If you e.g have misspelled a word you can use this function to automatically search for and replace the misspelled word with the correct spelling.</p>
+<p>Take care when doing this. Remember that search and replace actually replaces elements of all your entries.</p>
+HTML;
+
+//----------------------------------
+// Plugins
+//----------------------------------
+$help_sections['plugins'] = <<<HTML
+<h2>Plugins</h2>
+   <p>Some words about the plugin &quot;Calendar/Archives/Categories/Title&quot;. There are four features available:
+		cn_calendar(), cn_archives(), cn_category() and cn_title. The first one displays a calendar with your news,
+		the second one lists your archives, the third one lists your categories and the fourth one the &quot;path&quot; of the news in the browser's title.</p>
+	  <p><strong>Pay attention!</strong> These are PHP functions. You have to call them like this:</p>
+
+   <p class="code">&lt;?=cn_category(); ?&gt;</p>
+   <p>Or with the proper variables like this:</p>
+   <p class="code">&lt;?=cn_category('variable1', 'variable2'); ?&gt;</p>
+   
+   <p><strong>cn_archives()</strong>:</p>
+   <p class="code">cn_archives([template [, sort [, id]]])<br>- <strong>template</strong>
+
+		is the look of the archives (Default: <em>&lt;a href=&quot;{link}&quot;&gt;{date}
+		({count})&lt;/a&gt;&lt;br /&gt;</em>), <br>&nbsp;&nbsp;{count} (number of news for this month), {date} (for example April 2005), <br>&nbsp;&nbsp;{link} (for example /2005/04/,
+		can be changed in urls.ini category - [home], type - month). <br>
+		- <strong>sort</strong> for example array('author', 'DESC') (Default: array('date', 'DESC'))<br>
+
+		- <strong>ID</strong> the ID for the cache</p>
+		
+   <p><strong>cn_category()</strong>:</p>   
+   <p class="code">cn_category([prefix [, template [, no_prefix [, level
+		[, id]]]]])<br>- <strong>prefix</strong> it's that, what will be before <strong>template</strong>,
+		but, will be constantly repeated. Default prefix - <em>&amp;nbsp;</em> (empty symbol).<br>- <strong>no-prefix</strong>
+
+		it is important thing. It directs script to make prefix for categories-parents from which
+		begins all subcategories (default true, <em>no</em> - it means not to &nbsp;&nbsp;apply to prefix).<br>- <strong>template</strong>
+		- as in cn_archive() its appearance. Tags: <br>&nbsp;&nbsp;{id} - its ID of category,
+		 <br>&nbsp;&nbsp;{name} - its name, <br>&nbsp;&nbsp;{url} - its URL (in translit or called in field &quot;Alternative Url&quot;),
+		<br>&nbsp;&nbsp;{icon} - its icon of category. <br> You can put [php]some php function here[/php]. For example: <em>&lt;a
+		href=&quot;[php]cute_get_link(\$row, category)[/php]&quot;&gt;{name} ([php]count_category_entry({id})[/php])&lt;/a&gt;&lt;br
+		/&gt;</em>. <strong>level</strong> says which <b>category id</b> you want show.
+		Script will show all subcategories of typed ID. <strong>id</strong> - it needs only for cache</p>
+
+   
+   <p><strong>cn_title()</strong>:</p>
+   <p class="code">cn_title([separator [, direction [, id]]]) - with <strong>separator</strong>, we think, all clear. <strong>direction</strong> shows &quot;from to&quot; begin to end - false, end to begin - true. <strong>id</strong> it's unique ID of including.</p>
+
+   
+   <p><strong>cn_calendar()</strong> shows a calendar with all your news. CSS for the calendar:</p>
+   <p class="code"><strong>#calendar</strong> - the id for the calendar's table<br>
+	<strong>.month</strong> - the class for the months and links to previous/next month<br>
+	<strong>.weekday</strong> - the class for the weekdays from Monday to Friday<br>
+
+	<strong>.day</strong> - the class for the days from Monday to Sunday<br>
+	<strong>.weekend</strong> - the class for the days from Saturday to Sunday<br>
+	<strong>.endday</strong> - the class for the last day of the week (Sunday)
+	</p>
+   <p>You can use code like this in your CSS:</p>
+
+   <p class="code">#calendar {text-align: center;}<br>
+	#calendar .month, #calendar .month a {font-weight: bold;color: #ccc;}<br>
+	#calendar .weekday {color: #ccc;}<br>
+	#calendar .weekday a {color: #ccc;font-weight: bold;}<br>
+	#calendar .day, #calendar .day a {color: #ccc;}<br>
+	#calendar .weekend {color: #c60000;}<br>
+
+	#calendar .weekend a {color: #c60000;font-weight: bold;}<br>
+	#calendar .endday, #calendar .endday a {color: #c60000;}</p>
+HTML;
+//----------------------------------
+// Functions in CNR
+//----------------------------------
+$help_sections['cnrfunctions'] = <<<HTML
+<h2>Functions</h2>
+ <p>Finally some words about usefull functions in CuteNews.RU</p>
+      <p class="code">category_get_tree([prefix [, template [, no-prefix [, id]]]]) - this function is very similar to cn_category() described above. So we have cn_category() + tag {prefix}, which allows you
+		to use typed prefix in <strong>template</strong>. <strong>Id</strong> is the id of the category-parent</p>
+
+		<p class="code">category_get_link(id) - <strong>Id</strong> is the number of the category. The function returns a link with all parent categories</p>
+	<p class="code">category_get_children(id) - returns a list of all child categories (&quot;1,2,3&quot;)</p>
+	<p class="code">category_get_title(id [, separator]) - returns the name of a category from its id. <strong>separator</strong> is the character between the names of the categories</p>
+
+	<p class="code">category_get_id(category) - this function gives the id of a category from its name or URL. <strong>category</strong> - the name of a category or its URL</p>
+HTML;
+//----------------------------------
+// rUFUs
+//----------------------------------
+$help_sections['rufus'] = <<<HTML
+   <h2>rUFUs: search engine friendly links</h2>
+   <p>The "RUFUS" (real user friendly urls) setting within "options" decides how URLs works within your CuteNews.RU installation.<br /><strong>Important:</strong> do not temper with this unless you know what you are doing!</p>
+   <p>Advice: follow this hierarchy:</p>
+   <p class="code">[home] <br />
+		post = &quot;{year}/{month}/{day}/{title}.html&quot; <br />
+		user = &quot;users/{user}.html&quot; <br />
+
+		day = &quot;{year}/{month}/{day}&quot; <br />
+		month = &quot;{year}/{month}&quot; <br />
+		year = &quot;{year}&quot;<br />
+		<strong>category = &quot;{categories}&quot; </strong><br />
+
+		[rss] <br />
+		post = &quot;{year}/{month}/{day}/{title}.xml&quot; <br />
+		category = &quot;rss.php/category/{categories}/rss.xml&quot; <br />
+		user = &quot;rss.php/users/{user}.xml&quot; <br />
+
+		feed = &quot;rss.php/rss.xml&quot; <br />
+		[print] <br />
+		post = &quot;{year}/{month}/{day}/{title}.phtml&quot; <br />
+		[trackback] <br />
+		post = &quot;{year}/{month}/{day}/{title}.tb&quot;</p>
+
+		
+	<p>If you want to display links like the CutePHP version use something like this:</p>
+    <p align="left" class="code">[home]<br />
+ post = &quot;?id={id}&quot;<br />
+    <br />
+
+ category = &quot;?category={category-id}&quot;<br />
+
+    <br />
+user = &quot;?user={user}&amp;do=users&quot;<br />
+    <br />
+day = &quot;?year={year}&amp;month={month}&amp;day={day}&quot;<br />
+ month = &quot;?year={year}&amp;month={month}&quot;<br />
+
+ year = &quot;?year={year}&quot;<br />
+    <br />
+[rss]<br />
+ post = &quot;?id={id}&quot;<br />
+ category = &quot;?category={category-id}&quot;<br />
+ user = &quot;?user={user}&quot;<br />
+
+ feed = &quot;?&quot;<br />
+    <br />
+[print]<br />
+ post = &quot;?id={id}&quot;<br />
+    <br />
+[trackback]<br />
+ post = &quot;?id={id}&quot;
+
+</p>
+HTML;
+
+//----------------------------------
+// Backup
+//----------------------------------
+$help_sections['backup'] = <<<HTML
+<h2>Backup</h2>
+	<p>You can make a backup of your MySQL database and/or your data folder. Open your browser and go to http://yoursite.com/path/to/backup (path/to is the path to your cutenews installation) and choose what to backup.</p>
+	<p>We recommend to do a backup at least once a month.</p>
+HTML;
+
+//----------------------------------
+// script optimization
+//----------------------------------
+$help_sections['cache'] = <<<HTML
+<h2>Script optimization (cache)</h2>
+   <p>To accelerate the speed of the script and to decrease the server usage it is necessary to activate caching.
+   It is activated by default. To turn it off go to head.php and set <strong>cache</strong> to <em>false</em> at the beginning of the file. It is not recommanded to turn it off as some plugins and functions (especially functions involving categories) query the database and cause unnecessary server traffic.</p>
+
+   <p>You can set <strong>global_cache</strong> to <em>true</em> if your server is <em>really</em> busy. </p>
+HTML;
+
+//----------------------------------
+// date() function
+//----------------------------------
+$help_sections['date'] = <<<HTML
+<h2>How to work with the date() function</h2>
+The following formats can be used within the date setting in your system settings (gathered from php.net):
+<ul>
+	<li><strong>d</strong>  	Day of the month, 2 digits with leading zeros  	01 to 31</li>
+	<li><strong>D</strong> 	A textual representation of a day, three letters 	Mon through Sun</li>
+	<li><strong>j</strong> 	Day of the month without leading zeros 	1 to 31</li>
+	<li><strong>l</strong> (lowercase 'L') 	A full textual representation of the day of the week 	Sunday through Saturday</li>
+	<li><strong>N</strong> 	ISO-8601 numeric representation of the day of the week (added in PHP 5.1.0) 	1 (for Monday) through 7 (for Sunday)</li>
+	<li><strong>S</strong> 	English ordinal suffix for the day of the month, 2 characters 	st, nd, rd or th. Works well with j</li>
+	<li><strong>w</strong> 	Numeric representation of the day of the week 	0 (for Sunday) through 6 (for Saturday)</li>
+	<li><strong>z</strong> 	The day of the year (starting from 0) 	0 through 365</li>
+</ul>
+
+<h3>Week</h3>
+<ul>
+	<li>W</strong> 	ISO-8601 week number of year, weeks starting on Monday (added in PHP 4.1.0) 	Example: 42 (the 42nd week in the year)</li>
+</ul>
+
+<h3>Month</h3>
+<ul>
+	<li><strong>F</strong> 	A full textual representation of a month, such as January or March 	January through December</li>
+	<li><strong>m</strong> 	Numeric representation of a month, with leading zeros 	01 through 12</li>
+	<li><strong>M</strong> 	A short textual representation of a month, three letters 	Jan through Dec</li>
+	<li><strong>n</strong> 	Numeric representation of a month, without leading zeros 	1 through 12</li>
+	<li><strong>t</strong> 	Number of days in the given month 	28 through 31</li>
+</ul>
+
+<h3>Year</h3>
+<ul>
+	<li><strong>L</strong> 	Whether it's a leap year 	1 if it is a leap year, 0 otherwise.</li>
+	<li><strong>o</strong> 	ISO-8601 year number. This has the same value as Y, except that if the ISO week number (W) belongs to the previous or next year, that year is used instead. (added in PHP 5.1.0) 	Examples: 1999 or 2003</li>
+	<li><strong>Y</strong> 	A full numeric representation of a year, 4 digits 	Examples: 1999 or 2003</li>
+	<li><strong>y</strong> 	A two digit representation of a year 	Examples: 99 or 03</li>
+</ul>
+
+<h3>Time</h3>
+<ul>
+	<li><strong>a</strong> 	Lowercase Ante meridiem and Post meridiem 	am or pm</li>
+	<li><strong>A</strong> 	Uppercase Ante meridiem and Post meridiem 	AM or PM</li>
+	<li><strong>B</strong> 	Swatch Internet time 	000 through 999</li>
+	<li><strong>g</strong> 	12-hour format of an hour without leading zeros 	1 through 12</li>
+	<li><strong>G</strong> 	24-hour format of an hour without leading zeros 	0 through 23</li>
+	<li><strong>h</strong> 	12-hour format of an hour with leading zeros 	01 through 12</li>
+	<li><strong>H</strong> 	24-hour format of an hour with leading zeros 	00 through 23</li>
+	<li><strong>i</strong> 	Minutes with leading zeros 	00 to 59</li>
+	<li><strong>s</strong> 	Seconds, with leading zeros 	00 through 59</li>
+	<li><strong>u</strong> 	Milliseconds (added in PHP 5.2.2) 	Example: 54321</li>
+</ul>
+
+<h3>Timezone</h3>
+<ul>
+	<li><strong>e</strong> 	Timezone identifier (added in PHP 5.1.0) 	Examples: UTC, GMT, Atlantic/Azores</li>
+	<li><strong>I</strong> (capital i) 	Whether or not the date is in daylight saving time 	1 if Daylight Saving Time, 0 otherwise.</li>
+	<li><strong>O</strong> 	Difference to Greenwich time (GMT) in hours 	Example: +0200</li>
+	<li><strong>P</strong> 	Difference to Greenwich time (GMT) with colon between hours and minutes (added in PHP 5.1.3) 	Example: +02:00</li>
+	<li><strong>T</strong> 	Timezone abbreviation 	Examples: EST, MDT ...</li>
+	<li><strong>Z</strong> 	Timezone offset in seconds. The offset for timezones west of UTC is always negative, and for those east of UTC is always positive. 	-43200 through 50400</li>
+</ul>
+
+<h3>Full Date/Time</h3>
+<ul>
+	<li><strong>c</strong> 	ISO 8601 date (added in PHP 5) 	2004-02-12T15:19:21+00:00</li>
+	<li><strong>r</strong> 	» RFC 2822 formatted date 	Example: Thu, 21 Dec 2000 16:01:07 +0200</li>
+	<li><strong>U</strong>	Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT) 	</li>
+</ul>
+HTML;
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Load the specified section in PopUp Window
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+$help_sections = run_filters('help-sections', $help_sections);
+
+if ($section){
+	if (!$help_sections[$section]){
+		die('The section you selected does not exist. (<strong>'.$section.'</strong>)');
+	}
+?>
+
+<html>
+<link href="skins/default.css" rel="stylesheet" type="text/css" media="screen" />
+<title>Help - <?=$section; ?></title>
+<body>
+<?=$help_sections[$section]; ?>
+</body></html>
+
+<?
+} else {
+	echoheader('help', 'Help');
+
+	foreach ($help_sections as $help_section){
+		echo $help_section;
+	}
+
+	echofooter();
+}
+?>

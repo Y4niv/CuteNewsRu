@@ -1,0 +1,85 @@
+<?php
+// ********************************************************************************
+// Add IP
+// ********************************************************************************
+if ($action == 'add'){
+	if (!$add_ip){
+		msg('error', $echo['error'], $echo['ipEmpty'], $PHP_SELF.'?mod=ipban');
+	}
+
+	if (!$sql->select(array('table' => 'ipban', 'where' => array("ip = $add_ip")))){
+		$sql->insert(array(
+		'table'	 => 'ipban',
+		'values' => array('ip' => $add_ip)
+		));
+	}
+}
+
+// ********************************************************************************
+// Remove IP
+// ********************************************************************************
+if ($action == 'remove'){
+	if (!$remove_ip){
+		msg('error', $echo['error'], $echo['ipEmpty'], $PHP_SELF.'?mod=ipban');
+	}
+
+	$sql->delete(array(
+	'table' => 'ipban',
+	'where' => array("ip = $remove_ip")
+	));
+}
+
+// ********************************************************************************
+// List all IP
+// ********************************************************************************
+echoheader('options', $echo['header']);
+?>
+
+<form method="post" action="<?=$PHP_SELF; ?>">
+<table border="0" cellpading="0" cellspacing="0" width="645">
+ <td width="321" height="33"><b><?=$echo['ipban']['block']; ?></b>
+  <table border="0" cellpading="0" cellspacing="0" width="379"	class="panel" cellpadding="7">
+	<tr>
+	<td width="79" height="25">&nbsp;<?=$echo['add']; ?>
+	<td width="300" height="25"><input type="text" name="add_ip">&nbsp;&nbsp;
+	 <input type="submit" value="<?=$echo['block']; ?>">
+	 <input type="hidden" name="action" value="add">
+	 <input type="hidden" name="mod" value="ipban">
+	</form>
+	</table>
+	<tr>
+	<td width="654" height="14"><br /><b><?=$echo['blocked']; ?></b>
+	<tr>
+	<td width="654" height="1">
+	<table width="641" height="100%" cellspacing="2" cellpadding="2">
+	 <tr>
+	   <td width="260" class="panel"><b><?=$echo['ip']; ?></b>
+	   <td width="218" class="panel"><b><?=$echo['count']; ?></b>
+	   <td width="140" class="panel">&nbsp;<b><?=$echo['unblock']; ?></b>
+
+<?
+if (!$query = $sql->select(array('table' => 'ipban'))){
+?>
+
+<tr>
+ <td align="center" colspan="5"><br />&nbsp;<?=$echo['empty']; ?>
+
+<?
+} else {
+	foreach($query as $row){
+?>
+
+<tr height="18">
+ <td><a href="http://www.ripe.net/perl/whois?searchtext=<?=$row['ip']; ?>" target="_blank"><?=$row['ip']; ?></a>
+ <td><?=$row['count']; ?></td>
+ <td><a href="<?=$PHP_SELF; ?>?mod=ipban&action=remove&amp;remove_ip=<?=$row['ip']; ?>"><?=$echo['action']; ?></a>
+
+<?
+	}
+}
+?>
+
+</table>
+</table>
+
+<? echofooter(); ?>

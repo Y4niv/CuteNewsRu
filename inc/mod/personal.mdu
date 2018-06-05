@@ -1,0 +1,181 @@
+<?php
+// ********************************************************************************
+// Personal Options
+// ********************************************************************************
+if (!$action){
+	echoheader('user', $echo['header']);
+
+	foreach ($member as $key => $value){
+		 $member[$key] = stripslashes(str_replace(array('"', '\''), array('&quot;', '&#039;'), $member[$key]));
+	}
+
+	if ($config_user_avatar == 'yes'){
+		if ($member['avatar']){
+			$member['avatar'] = '<img src="'.$config_path_userpic_upload.'/'.$member['username'].'.'.$member['avatar'].'" style="margin: 5px; border: 0px;">';
+			$delava = '<input type="checkbox" name="delavatar" id="delavatar">&nbsp;<label for="delavatar">'.$echo['avatarRemove'].'</label>';
+		} else {
+			unset($member['avatar'], $delava);
+		}
+
+		$showrow_avatar = '<tr '.cute_that().'><td height="21">&nbsp;&nbsp;'.$echo['avatar'].':<td height="21"><input type="hidden" name="max_file_size" value="110000"><input tabindex="6" name="newavatar" type="file" size="27"></td><td>'.$delava;
+	 } else {
+		 unset($member['avatar']);
+	 }
+?>
+
+<table border="0" height="1" width="100%" cellspacing="0" cellpadding="0">
+<form method="post" action="<?=$PHP_SELF; ?>" name="personal" enctype="multipart/form-data">
+ <tr>
+  <td colspan="2" style="padding-bottom: 10px;"><b><?=$echo['info']; ?></b>
+ <tr <?=cute_that(); ?>>
+  <td height="21">&nbsp;&nbsp;<?=$echo['nickname']; ?>
+  <td height="21" width="400" colspan="2"><input type="hidden" name="editusername" value="<?=$member['username']; ?>"><?=$member['username']; ?>
+ <tr <?=cute_that(); ?>>
+  <td height="21" width="150">&nbsp;&nbsp;<?=$echo['regDate']; ?>
+  <td height="21" width="400" colspan="2"><?=langdate('l, j M Y - h:i', $member['date']); ?>
+ <tr <?=cute_that(); ?>>
+  <td height="21">&nbsp;&nbsp;<?=$echo['level']; ?>
+  <td height="21" width="400" colspan="2"><?=$echo['level_'.$member['level']]; ?>
+
+<?
+	if ($member['level'] != 4){
+?>
+
+<tr <?=cute_that(); ?>>
+ <td height="21" width="150">&nbsp;&nbsp;<?=$echo['publications']; ?>
+ <td height="21" width="400" colspan="2"><?=$member['publications']; ?>
+
+<?
+	}
+?>
+
+<tr>
+ <td colspan="2" style="padding-top: 10px;padding-bottom: 10px;"><b><?=$echo['profile']; ?></b>
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['newPass']; ?>
+ <td height="21" width="400" colspan="2"><input name="editpassword">&nbsp;&nbsp;&nbsp;<?=$echo['ifNeedNewPass']; ?>
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['name']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editnickname" value="<?=$member['name']; ?>">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['mail']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editmail" value="<?=$member['mail']; ?>">&nbsp;&nbsp;&nbsp;<input type="checkbox" name="edithidemail" <?=($member['hide_mail'] ? 'checked' : ''); ?> id="edithidemail">&nbsp;<label for="edithidemail"><?=$echo['hideMail']; ?></label>
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['homepage']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editsite" value="<?=$member['homepage']; ?>">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['icq']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editicq" value="<?=$member['icq']; ?>">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['lj']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editlj" value="<?=$member['lj_username']; ?>">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['ljPass']; ?>
+ <td height="21" width="400" colspan="2"><input name="editljpass" disabled="disabled">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['from']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editfrom" value="<?=$member['location']; ?>">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['about']; ?>
+ <td height="21"><textarea type="text" name="editabout" style="width: 300px; height: 120px; padding: 5px; overflow-x: hidden; overflow-y: visible; "><?=str_replace('<br />', "\n", $member['about']); ?></textarea><?=$member['avatar']; ?>
+ <td width="200" align="left">&nbsp;
+<?=$showrow_avatar; ?>
+<tr>
+ <td height="1" colspan="2" colspan="3"><br />
+  <input type="submit" value="<?=$echo['save']; ?>" accesskey="s">
+  <input type="hidden" name="mod" value="personal">
+  <input type="hidden" name="action" value="dosavepersonal">
+</form>
+</table>
+
+<?
+	echofooter();
+}
+
+// ********************************************************************************
+// Save Personal Options
+// ********************************************************************************
+if ($action == 'dosavepersonal'){
+	$userpic_folder = cute_parse_url($config_path_userpic_upload);
+	$userpic_folder = $userpic_folder['abs'];
+
+	if (!@opendir($userpic_folder)){
+		@mkdir($userpic_folder, chmod);
+		@chmod($userpic_folder, chmod);
+	}
+
+	if ($delavatar){
+		unset($change_avatar);
+		@unlink($userpic_folder.'/'.$member['username'].'.'.$member['avatar']);
+	} else {
+		$change_avatar = $member['avatar'];
+	}
+
+	if ($editljpass){
+		$editljpass = $editljpass;
+	} else {
+		$editljpass = $member['lj_password'];
+	}
+
+	if ($newavatar){
+		// Загружаем файл(ы)
+		$avatarname = $_FILES['newavatar']['name'];
+		$avatartemp = $_FILES['newavatar']['tmp_name'];
+		$type		= end($type = explode('.', $avatarname));
+
+		// Проверяем картинку или фигню какую-то пытается закачать юзер
+		if (!in_array($type, $allowed_extensions) or !in_array(strtolower($type), $allowed_extensions)){
+			@unlink($userpic_folder.'/'.$avatarname);
+
+			$change_avatar = $member['avatar'];
+			$avatar_error  = $echo['avatarError_1'];
+		} else {
+			@unlink($userpic_folder.'/'.$member['username'].'.'.$member['avatar']);
+			@move_uploaded_file($avatartemp, $userpic_folder.'/'.$avatarname);
+
+			$size = @getimagesize($userpic_folder.'/'.$avatarname);
+
+			// Проверяем размеры загружаемой картинки
+			if (($size[0] > $config_avatar_w) and ($size[1] > $config_avatar_h)){
+				$avatar_error  = $echo['avatarError_2'].' '.$config_avatar_w.'x'.$config_avatar_h;
+				$change_avatar = $member['avatar'];
+				@unlink($userpic_folder.'/'.$avatarname);
+			} else {
+				$change_avatar = @rename($userpic_folder.'/'.$avatarname, $userpic_folder.'/'.$member['username'].'.'.$type);
+				$change_avatar = $type;
+			}
+		}
+	}
+
+	foreach ($sql->select(array('table' => 'users', 'where' => array("id = $member[id]"))) as $row){
+		if ($editpassword){
+			$row['password'] = md5x($editpassword);
+			$_SESSION['md5_password'] = $row['password'];
+
+			if (cookie){
+				setcookie('md5_password', $row['password']);
+			}
+		}
+	}
+
+	$sql->update(array(
+	'table'	 => 'users',
+	'where'	 => array("id = $member[id]"),
+	'values' => array(
+				'password'	  => $row['password'],
+				'name'		  => replace_comment('add', $editnickname),
+				'mail'		  => $editmail,
+				'hide_mail'	  => ($edithidemail ? true : false),
+				'avatar'	  => $change_avatar,
+				'homepage'	  => replace_comment('add', $editsite),
+				'icq'		  => replace_comment('add', $editicq),
+				'location'	  => replace_comment('add', $editfrom),
+				'about'		  => replace_comment('add', $editabout),
+				'lj_username' => replace_comment('add', $editlj),
+				'lj_password' => $editljpass,
+				)
+	));
+
+	msg('info', $echo['headerSaved'], $echo['changeSaved'].$avatar_error, $PHP_SELF.'?mod=personal');
+}
+?>

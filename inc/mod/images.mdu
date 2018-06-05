@@ -1,0 +1,1103 @@
+<?php
+///////////////////////////////////////////////////////////////////
+//
+//Original images.mdu modified by FI-DD
+//http://english.cutenews.ru/forum/profile.php?mode=viewprofile&u=2
+//
+///////////////////////////////////////////////////////////////////
+
+if ($member['level'] > 2 and ($action == 'remove' or $action == 'rename')){
+	$action = '';
+}
+
+if ($config_use_images_uf == 'yes' or $member['level'] < 3 and $user){
+	$user = (($member['level'] < 3 and $user) ? totranslit($user) : totranslit($member['username']));
+}
+
+$query_string = cute_query_string($QUERY_STRING, array('action', 'mod', 'image', 'name', 'start_from', 'align', 'sortby', 'subfolder', 'act'));
+$PHP_SELF .= '?mod=images'.$query_string;
+$allowed_upload = false;
+
+//Configuration
+$settings = new PluginSettings('image_manager');
+	
+	if(!is_array($settings -> settings)){
+			$settings -> settings = array(
+				'align'				=>'none',
+				'popup'				=> '0',
+				'update'			=> '0',
+				'replace'			=> '0',
+				'replace_template'	=> '<i>{date:d.m.Y}: <b>{image}</b> was removed.</i>',
+				'video_width'		=> '320',
+				'video_height'		=> '240',
+				'auto_start'		=> 'yes',
+				'uimode'			=> 'full',
+				'media_extensions'	=> 'avi,mpg'
+			);
+			
+			$settings -> save();
+	}
+	
+	if($settings -> settings['align'] == 'left') $default_align = 'align="left"';
+	if($settings -> settings['align'] == 'right') $default_align = 'align="right"';
+	if($settings -> settings['align'] == 'none') $default_align = '';
+	
+	if($settings -> settings['popup'] == '1') $popup = true;
+	if($settings -> settings['popup'] == '0') $popup = false;
+	
+	if($settings -> settings['update'] == '1') $update = true;
+	if($settings -> settings['update'] == '0') $update = false;
+	
+	if($settings -> settings['replace'] == '1') $replace = true;
+	if($settings -> settings['replace'] == '0') $replace = false;
+	
+	$replace_template = $settings -> settings['replace_template'];
+	
+	$media_extensions = explode(",", $settings -> settings['media_extensions']);
+	
+//Show configuration
+if($_GET['act'] == "configuration" and !$area and $member['level'] == 1){
+echoheader('images', $echo['header']);
+
+		echo 	'<b>'.$echo['configuration'].'</b><br />'.
+				'<form method="post" action="'.$PHP_SELF.'">'.
+				'<table>'.
+				'<tr><td>'.$echo['align'].'</td><td><label for="aleft">'.$echo['alignLeft'].'</label></td><td><input id="aleft" type="radio" name="align1" value="left" '.($settings -> settings['align'] == 'left' ? 'checked' : '').'></td></tr>'.
+				
+				'<tr><td></td><td><label for="aright">'.$echo['alignRight'].'</label></td><td><input id="aright" type="radio" name="align1" value="right" '.($settings -> settings['align'] == 'right' ? 'checked' : '').'></td></tr>'.
+				
+				'<tr><td></td><td><label for="anone">'.$echo['alignNone'].'</label></td><td><input id="anone" type="radio" name="align1" value="none" '.($settings -> settings['align'] == 'none' ? 'checked' : '').'></td></tr>'.
+				
+				'<tr><td><label title="'.$echo['updateTitle'].'" for="update">'.$echo['update'].'</label></td><td><input id="update" type="checkbox" name="update1" value="1" '.($settings -> settings['update'] == '1' ? 'checked' : '').'></td></tr>'.
+				
+				'<tr><td><label title="'.$echo['replaceTitle'].'" for="replace">'.$echo['replace'].'</label></td><td><input onClick="javascript:ShowOrHide(\'show_template\')" id="replace" type="checkbox" name="replace1" value="1" '.($settings -> settings['replace'] == '1' ? 'checked' : '').'></td><td><div style="display:'.($settings -> settings['replace'] == '1' ? 'block' : 'none').'"id="show_template"><input type="text" name="replace_template1" value="'.$settings -> settings['replace_template'].'" size="40" /><br />'.$settings -> settings['replace_template'].'</div></td></tr>'.
+				
+				'<tr><td>'.$echo['extensions'].'</td><td><input type="text" name="media_extensions1" value="'.$settings -> settings['media_extensions'].'" /></td></tr>'.
+				
+				'<tr><td>'.$echo['playerWidth'].'</td><td><input type="text" name="video_width1" value="'.$settings -> settings['video_width'].'" /></td></tr>'.
+				
+				'<tr><td>'.$echo['playerHeight'].'</td><td><input type="text" name="video_height1" value="'.$settings -> settings['video_height'].'" /></td></tr>'.
+				
+				'<tr><td>'.$echo['playerMode'].'</td><td>'.makeDropDown(array('none' => ''.$echo['non'].'', 'mini' => ''.$echo['mini'].'', 'full' => ''.$echo['full'].''), 'uimode1', $settings -> settings['uimode']).'</td></tr>'.
+				
+				'<tr><td>'.$echo['autostart'].'</td><td>'.makeDropDown(array('yes' => $echo['sayyes'], 'no' => ''.$echo['sayno'].''), 'auto_start1', $settings -> settings['auto_start']).'</td></tr>'.
+				
+				'<tr><td><label title="'.$echo['popupTitle'].'" for="popup">'.$echo['popup'].'</label></td><td><input id="popup" type="checkbox" onclick="javascript:ShowOrHide(\'show_help\')" name="popup1" value="1" '.($settings -> settings['popup'] == '1' ? 'checked' : '').'></td></tr>'.
+				'</table>'.
+				'<span id="show_help" style="display:'.($settings -> settings['popup'] == '1' ? 'block' : 'none').'">'.
+				'1. Copy popup.js in the same folder as your news page.<br />'.
+				'2. Put this code in the &lt;head&gt; tag of your news page:<br />'.
+				'<div class="code">&lt;script type="text/javascript" src="./popup.js"&gt;&lt;/script&gt;</div>'.
+				'</span><br />'.
+				'<input type="hidden" name="act" value="save_config">'.
+				'<input type="submit" value="'.$echo['save'].'">'.
+				'</form>';
+				
+				echofooter();
+				exit;
+}
+
+//Save the config
+	if($_POST['act'] == "save_config"){
+			
+			$settings -> settings = array(
+				'align' => $_POST['align1'],
+				'popup' => ($_POST['popup1'] == "1" ? '1' : '0'),
+				'update' => ($_POST['update1'] == "1" ? '1' : '0'),
+				'replace' => ($_POST['replace1'] == "1" ? '1' : '0'),
+				'replace_template' => $_POST['replace_template1'],
+				'video_width'		=> $_POST['video_width1'],
+				'video_height'		=> $_POST['video_height1'],
+				'auto_start'		=> $_POST['auto_start1'],
+				'uimode'			=> $_POST['uimode1'],
+				'media_extensions'	=> $_POST['media_extensions1']
+			);
+			
+			$settings -> save();
+			
+	}
+
+
+$folder = end($folder = cute_parse_url($config_path_image_upload));
+if(!file_exists($folder))
+@mkdir($folder, chmod);
+
+
+if ($config_use_images_uf == 'yes' or $user){
+	$folder .= '/'.$user;
+	$config_path_image_upload .= '/'.$user;
+	if(!file_exists($folder))
+	@mkdir($folder, chmod);
+	if(!file_exists($folder.'/thumbs'))
+	@mkdir($folder.'/thumbs', chmod);
+}
+
+$base_folder = $folder;
+
+if(!file_exists($folder.'/subfolders'))
+@mkdir($folder.'/subfolders', chmod);
+
+if(!file_exists($folder.'/thumbs'))
+@mkdir($folder.'/thumbs', chmod);
+
+
+if($_POST['subfolder'] == 'base' or $_GET['subfolder'] == 'base'){
+
+}
+
+elseif($_POST['subfolder'] and $_POST['subfolder'] != ''){
+	$subfolder = $_POST['subfolder'];
+	$folder .= '/subfolders/'.$subfolder;
+	$config_path_image_upload .= '/subfolders/'.$subfolder;
+	
+	if(!file_exists($folder.'/thumbs'))
+	@mkdir($folder.'/thumbs', chmod);
+}
+
+elseif($_GET['subfolder'] and $_GET['subfolder'] != ''){
+	$subfolder = $_GET['subfolder'];
+	$folder .= '/subfolders/'.$subfolder;
+	$config_path_image_upload .= '/subfolders/'.$subfolder;
+	
+	if(!file_exists($folder.'/thumbs'))
+	@mkdir($folder.'/thumbs', chmod);
+}
+
+//Rename image
+if ($action == 'rename' and $image and $name){
+	@rename($folder.'/'.$image, $folder.'/'.$name);
+	@rename($folder.'/thumbs/'.$image, $folder.'/thumbs/'.$name);
+	if($update){
+		$old = array('/'.$image, '/thumbs/'.$image, $image);
+		$new = array('/'.$name, '/thumbs/'.$name, $name);
+		update_stories($old, $new);
+	}
+	header('Location: '.$PHP_SELF);
+}
+
+//Remove image
+if ($action == 'remove' and $image){
+	@unlink($folder.'/'.$image);
+	@unlink($folder.'/thumbs/'.$image);
+	if($update and $replace){
+		$old = array('#<a (.*)'.$_GET['subfolder'].'\/'.$image.'(.*)<\/a>#i', '#<img (.*)'.$_GET['subfolder'].'\/'.$image.'(.*)\/>#i', '#<OBJECT (.*)'.$_GET['subfolder'].'\/'.$image.'(.*)<\/OBJECT>#i');
+		$new_tmp = str_replace('{image}', $image, $replace_template);
+		$new_tmp = preg_replace('/{date:(.*?)}/ie', "langdate('\\1', time())", $new_tmp);
+		$new = array($new_tmp, $new_tmp, $new_tmp);
+		update_stories($old, $new, true);
+	}
+	header('Location: '.$PHP_SELF);
+}
+
+//Add subfolder
+if ($action == 'add_folder' and (!file_exists($folder.'/subfolders/'.$_POST['new_folder']))){
+	@mkdir($folder.'/subfolders/'.$_POST['new_folder'], chmod);
+	@mkdir($folder.'/subfolders/'.$_POST['new_folder'].'/thumbs', chmod);
+	
+	header('Location: '.$PHP_SELF);
+}
+
+//Rename subfolder
+if($action == 'rename_subfolders'){
+	@rename($base_folder.'/subfolders/'.$old_folder, $base_folder.'/subfolders/'.$selected_folder);
+	if($update){
+		$old = 'subfolders/'.$old_folder;
+		$new = 'subfolders/'.$selected_folder;
+		update_stories($old, $new);
+	}
+	header('Location: '.$PHP_SELF);
+}
+
+//Delete subfolder
+if($action == 'delete_folder'){
+	@rmdir($base_folder.'/subfolders/'.$selected_folder.'/thumbs');
+	@rmdir($base_folder.'/subfolders/'.$selected_folder);
+	header('Location: '.$PHP_SELF);
+}
+
+//Move image to another folder
+if($action == 'move_file'){
+	if(!file_exists($base_folder.($new_path == 'base' ? '' : '/subfolders/'.$new_path).'/'.$image)){
+		@copy($folder.'/'.$image, $base_folder.($new_path == 'base' ? '' : '/subfolders/'.$new_path).'/'.$image);
+		@copy($folder.'/thumbs/'.$image, $base_folder.($new_path == 'base' ? '/thumbs/' : '/subfolders/'.$new_path.'/thumbs/').$image);
+		if($update){
+			if($subfolder == ''){
+				$old = array('}/'.($user ? $user.'/' : '').$image, '/thumbs/'.$image);
+				$new = array('}/'.($user ? $user.'/' : '').'subfolders/'.$new_path.'/'.$image, '/subfolders/'.$new_path.'/thumbs/'.$image);
+			}
+			elseif($new_path != 'base'){
+				$old = array('/subfolders/'.$subfolder.'/'.$image, '/subfolders/'.$subfolder.'/thumbs/'.$image);
+				$new = array('/subfolders/'.$new_path.'/'.$image, '/subfolders/'.$new_path.'/thumbs/'.$image);
+			}
+			else{
+				$old = array('/subfolders/'.$subfolder.'/'.$image, '/subfolders/'.$subfolder.'/thumbs/'.$image);
+				$new = array('/'.$image, '/thumbs/'.$image);
+			}
+			update_stories($old, $new);
+		}
+		@unlink($folder.'/'.$image);
+		@unlink($folder.'/thumbs/'.$image);
+	}
+	header('Location: '.$PHP_SELF);
+	
+}
+
+if ($_FILES['image']['name']){
+	for ($i = 0; $i < count($_FILES['image']['name']); $i++){
+		$ext   = end($ext = explode('.', $_FILES['image']['name'][$i]));
+		$type  = end($type = explode('/', $_FILES['image']['type'][$i]));
+		$image = preg_replace('/(.*?).'.$ext.'$/ie', "totranslit('\\1')", $_FILES['image']['name'][$i]).'.'.$ext;
+
+		foreach ($allowed_extensions as $allow){
+			if (substr($type, -strlen($allow)) == $allow){
+				$allowed_upload = true;
+			}
+		}
+		
+		foreach($media_extensions as $allow){
+			if(strtolower($ext) == $allow){
+				$allowed_upload = true;
+			}
+		}
+		
+		
+		if ((file_exists($folder.'/'.$image) and $overwrite) or $allowed_upload){
+			move_uploaded_file($_FILES['image']['tmp_name'][$i], $folder.'/'.$image);
+			
+			//Resize image
+				if ($resize_image and $resize_pic){
+					if ($resize_pic < 1 or $resize_pic == "") {$resize_pic = 100;}
+					if ($square_pic == "yes") {
+						@img_resize($folder.'/'.$image, $folder.'/'.$image, $resize_pic, 'square');
+					}
+					else{
+						@img_resize($folder.'/'.$image, $folder.'/'.$image, $resize_pic, 'normal');
+					}
+					if ($shadow_pic) {
+						@make_shadow($folder.'/'.$image);
+					}
+				}
+			
+				//Add watermark (text)
+				if ($watermark and $watermark_text != "") { 
+					if($watermark_font == "none") {
+					@add_watermark($folder.'/'.$image, $watermark_text, $hotspot1, ($textcolor ? $textcolor : 'FFFFFF'), ($textsize ? $textsize : '12'));
+					}
+					else {
+					@add_watermark($folder.'/'.$image, $watermark_text, $hotspot1, ($textcolor ? $textcolor : 'FFFFFF'), ($textsize ? $textsize : '12'), 'data/watermark/'.$watermark_font);
+					}
+				}
+				//Add watermark (image)
+				if ($merge) {
+				@mergePix($folder.'/'.$image, 'data/watermark/'.$watermark_image, $folder.'/'.$image, $hotspot2, ($merge_transition ? $merge_transition : '40'));
+				}
+				
+				//Create thumb
+			if ($thumb and $make_thumb){
+				if ($make_thumb < 1 or $make_thumb == "") {$make_thumb = 100;}
+				if ($square == "yes") {
+					@img_resize($folder.'/'.$image, $folder.'/thumbs/'.$image, $make_thumb, 'square');
+				}
+				else{
+					@img_resize($folder.'/'.$image, $folder.'/thumbs/'.$image, $make_thumb, 'normal');
+				}
+				if ($shadow) {
+					@make_shadow($folder.'/thumbs/'.$image);
+				}
+			}
+		}
+	}
+
+	header('Location: '.$PHP_SELF);
+}
+
+if ($area){
+?>
+
+<link href="skins/default.css" rel="stylesheet" type="text/css" media="screen">
+<script language="javascript" type="text/javascript" src="skins/cute.js"></script>
+<script language="javascript" type="text/javascript">
+<!--
+function insertimage(text){
+	text = ' ' + text + ' ';
+	opener.document.forms['addnews'].<?=$area; ?>_story.focus();
+	opener.document.forms['addnews'].<?=$area; ?>_story.value  += text;
+	opener.document.forms['addnews'].<?=$area; ?>_story.focus();
+}
+//-->
+</script>
+
+<?
+} else {
+	echoheader('images', $echo['header']);
+	
+	echo '<a href="'.$PHP_SELF.'&act=configuration">'.$echo['configuration'].'</a>';
+}
+?>
+
+<table class="panel">
+<tr><td>
+
+<form action="<?=$PHP_SELF; ?>" method="post" enctype="multipart/form-data">
+<b><?=$echo['addNew']; ?></b> 
+<? if(!$area) { ?>
+<label for="manage_folders"><input type="checkbox" name="manage_folders" id="manage_folders" onclick="javascript:ShowOrHide('show_folders')"><b><?=$echo['manage']; ?></b></label>
+<? } ?>
+<table border="0" cellpading="0" cellspacing="0" width="250" class="panel">
+ <tr>
+  <td>
+
+<script language="javascript">
+f = 0
+function file_uploader(which){
+if (which < f) return
+	f ++
+	d = document.getElementById('image_'+f)
+	d.innerHTML = '<input type="file" name="image['+f+']" id="image_'+f+'" value="" onchange="file_uploader('+f+');" /><br /><span id="image_'+(f+1)+'">'
+}
+document.writeln('<input type="file" name="image[0]" value="" onchange="file_uploader(0);" /><br />')
+document.writeln('<span id="image_1"></span>')
+</script>
+
+<?=$echo['saveIn'].' '; ?>
+<?=makeDropDown(get_subfolders(), 'subfolder', ($_POST['subfolder'] ? $_POST['subfolder'] : ($_GET['subfolder'] ? $_GET['subfolder'] : $echo['baseFolder']))); ?>
+<br />
+
+   <label for="overwrite"><input type="checkbox" name="overwrite" id="overwrite"><?=$echo['overwrite']; ?></label><br />
+   
+   <label for="thumb"><input type="checkbox" name="thumb" id="thumb" onclick="javascript:ShowOrHide('make_thumb')"<?=(!extension_loaded('gd') ? ' disabled' : ''); ?>><?=$echo['makeThumb']; ?></label><br />
+   <span id="make_thumb" style="display: none;">
+   <ul style="list-style-type:none">
+   <li><input type="text" name="make_thumb" size="1" value="150"> <?=$echo['thumbSettings']; ?></li>
+   <li><input type="checkbox" name="square" id="square" value="yes"><label title="<?=$echo['crop']; ?>" for="square"><?=$echo['crop']; ?></label></li>
+   <li><input type="checkbox" name="shadow" id="shadow"><label title="<?=$echo['shadowTitle']; ?>" for="shadow"><?=$echo['shadow']; ?></label></li>
+   </ul>
+   </span>
+   
+   <label for="resize_image"><input type="checkbox" name="resize_image" id="resize_image" onclick="javascript:ShowOrHide('show_resize')"<?=(!extension_loaded('gd') ? ' disabled' : ''); ?>><?=$echo['resizeImage']; ?></label><br />
+   <span id="show_resize" style="display: none;">
+   <ul style="list-style-type:none">
+   <li><input type="text" name="resize_pic" size="1" value="300"> <?=$echo['resizeWidth']; ?></li>
+   <li><input type="checkbox" name="square_pic" id="square_pic" value="yes"><label title="<?=$echo['resizeCrop']; ?>" for="square_pic"><?=$echo['resizeCrop']; ?></label></li>
+   <li><input type="checkbox" name="shadow_pic" id="shadow_pic"><label title="<?=$echo['shadowTitle']; ?>" for="shadow_pic"><?=$echo['shadow']; ?></label></li>
+   </ul>
+   </span>
+   
+<?
+   $dir = opendir("./data/watermark");
+while ($single_file = readdir($dir)){
+	$file_ending = strtolower(end(explode('.', $single_file)));
+	if ($file_ending == "jpg" or $file_ending == "jpeg" or $file_ending == "gif" or $file_ending == "png"){
+		$watermarks[] = $single_file;
+	}
+	if ($file_ending == "ttf"){
+		$fonts[] = $single_file;
+	}
+}
+?>
+   
+   <label for="watermark"><input type="checkbox" name="watermark" id="watermark" onclick="javascript:ShowOrHide('make_watermark')"<?=(!extension_loaded('gd') ? ' disabled' : ''); ?>><?=$echo['makeWatermark']; ?></label><br />
+   <span id="make_watermark" style="display: none;">
+   <table width="200" align="center">
+   <tr>
+   <td><?=$echo['text']; ?></td><td><?=$echo['color']; ?></td><td><?=$echo['size']; ?></td>
+   </tr>
+   <tr>
+   <td><input type="text" name="watermark_text" size="10" value="[date]"></td>
+   <td><input type="text" name="textcolor" maxlength="6" size="3" value="FFFFFF"></td>
+   <td><input type="text" name="textsize" maxlength="2" size="1" value="12"></td>
+   </tr>
+   <tr><td> </td></tr>
+   <tr>
+   <td><?=$echo['position']; ?></td><td><?=$echo['font']; ?></td>
+   </tr>
+   <tr>
+   <td><input type="radio" name="hotspot1" value="1"> <input type="radio" name="hotspot1" value="2"> <input type="radio" name="hotspot1" value="3"><br />
+   <input type="radio" name="hotspot1" value="4"> <input type="radio" name="hotspot1" value="5" checked> <input type="radio" name="hotspot1" value="6"><br />
+   <input type="radio" name="hotspot1" value="7"> <input type="radio" name="hotspot1" value="8"> <input type="radio" name="hotspot1" value="9"></td>
+   <td valign="top">
+   <? if($fonts) { ?>
+   <select name="watermark_font">
+   <option value="none">Select</option>
+   <? foreach($fonts as $font) {
+   echo '<option value="'.$font.'">'.$font.'</option>';
+   }
+   ?>
+   </select>
+   <? } else {echo $echo['emptyFont'];} ?>
+	</td>
+   </tr>
+   </table>
+   <br /></span>
+   
+   <label for="merge"><input type="checkbox" name="merge" id="merge" onclick="javascript:ShowOrHide('make_merge')"<?=(!extension_loaded('gd') ? ' disabled' : ''); ?>><?=$echo['makeMerge']; ?></label><br />
+   <span id="make_merge" style="display: none;">
+   <table width="200" align="center">
+   <tr>
+   <td><?=$echo['transition']; ?></td>
+   </tr>
+   <tr>
+   <td><input type="text" name="merge_transition" maxlength="2" size="1" value="40"></td><td><?=$echo['explanationTransition']; ?></td>
+   </tr>
+   <tr><td> </td></tr>
+   <tr>
+   <td><?=$echo['position']; ?></td><td><?=$echo['watermark']; ?></td>
+   </tr>
+   <tr>
+   <td width="50%"><input type="radio" name="hotspot2" value="1"> <input type="radio" name="hotspot2" value="5"> <input type="radio" name="hotspot2" value="2"><br />
+   <input type="radio" name="hotspot2" value="8"> <input type="radio" name="hotspot2" value="0" checked> <input type="radio" name="hotspot2" value="6"><br />
+   <input type="radio" name="hotspot2" value="4"> <input type="radio" name="hotspot2" value="7"> <input type="radio" name="hotspot2" value="3"></td>
+   <td width="50%" valign="top">
+   <? if($watermarks) { ?>
+   <select onchange="showpreview('data/watermark/'+this.options[this.selectedIndex].value, 'previewimage')" name="watermark_image">
+   <? foreach($watermarks as $watermark_image) {
+   echo '<option value="'.$watermark_image.'">'.$watermark_image.'</option>';
+   }
+   ?>
+   </select><br />
+   <img name="previewimage" width="100px" src="data/watermark/<?=$watermarks[0]; ?>" align="left" style="margin: 5px;">
+   <? } 
+   else { echo $echo['emptyWatermark']; }
+   ?>
+   
+	</td>
+   </tr>
+   </table>
+   <br /></span>
+   
+	  <input type="submit" value="<?=$echo['upload']; ?>">
+</table>
+</form>
+
+</td><td>
+	
+	<span id="show_folders" style="display: none;">
+	<script type="text/javascript">
+	function insert_folder(){
+		myform = document.subfolder_form;
+		if(myform.dropfolder.selectedIndex == 0){
+			myform.selected_folder.disabled = true;
+			myform.rename_folder.disabled = true;
+			myform.delete_folder.disabled = true;
+		}
+		else{
+			myform.selected_folder.disabled = false;
+			myform.rename_folder.disabled = false;
+			myform.delete_folder.disabled = false;
+		}
+		
+		myform.selected_folder.value = myform.dropfolder.options[myform.dropfolder.selectedIndex].value;
+		myform.old_folder.value = myform.dropfolder.options[myform.dropfolder.selectedIndex].value;
+	}
+	</script>
+	<form method="post" action="">
+   <b><?=$echo['newFolder']; ?></b><br />
+   <input type="text" name="new_folder" />
+   <input type="submit" value="<?=$echo['submitNewFolder']; ?>" />
+   <input type="hidden" name="action" value="add_folder" />
+   </form>
+   
+   <br /><b>Edit</b><br />
+   <form method="post" name="subfolder_form" action="">
+   <?=makeDropDown(get_subfolders(), 'dropfolder"  onChange="insert_folder();', $echo['baseFolder']); ?><br />
+   <input type="text" name="selected_folder" value="" disabled />
+   <input type="hidden" name="old_folder" value="" />
+   <input type="submit" id="rename_folder" value="<?=$echo['renameFolder']; ?>" disabled />
+   <input type="submit" id="delete_folder" value="<?=$echo['deleteFolder']; ?>" onclick="confirmDelete('<?=$PHP_SELF; ?>&action=delete_folder')" disabled />
+   <input type="hidden" name="action" value="rename_subfolders" />
+   </form>
+	</span>
+</td></tr></table>
+
+<br /><br />
+
+<? if($area) { ?>
+<table width="200" border="0" cellspacing="2" cellpadding="0" align="center">
+<tr>
+<td>
+<?=$echo['align']; ?>: <select onchange="window.location=this.options[this.selectedIndex].value">
+<option value="<?=$config_http_script_dir.'/index.php?mod=images&area='.$_GET['area'].'&sortby='.$_GET['sortby'].'&start_from='.$_GET['start_from'].'&align=left'; ?>" <?=($_GET['align'] == 'left' ? 'selected' : '') ?>><?=$echo['alignLeft']; ?></option>
+<option value="<?=$config_http_script_dir.'/index.php?mod=images&area='.$_GET['area'].'&sortby='.$_GET['sortby'].'&start_from='.$_GET['start_from'].'&align=right'; ?>" <?=(!$_GET['align'] ? ($default_align == 'align="right"' ? 'selected' : '') : ($_GET['align'] == 'right' ? 'selected' : '')) ?>><?=$echo['alignRight']; ?></option>
+<option value="<?=$config_http_script_dir.'/index.php?mod=images&area='.$_GET['area'].'&sortby='.$_GET['sortby'].'&start_from='.$_GET['start_from'].'&align=none'; ?>" <?=(!$_GET['align'] ? ($default_align == '' ? 'selected' : '') : ($_GET['align'] == 'none' ? 'selected' : '')) ?>><?=$echo['alignNone']; ?></option>
+</select>
+</td>
+</tr>
+</table>
+<? } ?>
+
+<table width="600" border="0" cellspacing="2" cellpadding="0" align="center">
+<tr><td>
+<form method="post" name="current_folder" action="">
+<?=$echo['selectFolder']; ?><?=makeDropDown(get_subfolders(), 'subfolder"  onChange="document.current_folder.submit();', ($_POST['subfolder'] ? $_POST['subfolder'] : ($_GET['subfolder'] ? $_GET['subfolder'] : 'Main'))); ?>
+<input type="hidden" name="start_from" value="" />
+</form>
+</tr></td>
+
+
+<tr><td><?=(($_GET['sortby'] == "time") ? "<a href='".$config_http_script_dir."/index.php?mod=images&area=".$_GET['area']."&sortby=name&start_from=".$_GET['start_from']."&subfolder=".($_POST['subfolder'] ? $_POST['subfolder'] : $_GET['subfolder']).($area ? '&amp;align='.$_GET['align'] : '')."'>".$echo['sortbyName']."</a>" : "<a href='".$config_http_script_dir."/index.php?mod=images&area=".$_GET['area']."&sortby=time&start_from=".$_GET['start_from']."&subfolder=".($_POST['subfolder'] ? $_POST['subfolder'] : $_GET['subfolder']).($area ? '&amp;align='.$_GET['align'] : '')."'>".$echo['sortbyTime']."</a>"); ?></td>
+</tr>
+
+<?
+$handle = opendir($folder);
+while ($file = readdir($handle)){
+	if (in_array(strtolower(end(explode('.', $file))), $allowed_extensions) or in_array(strtolower(end(explode('.', $file))), $media_extensions)){
+		$files[$file] = filemtime($folder.'/'.$file);
+	}
+}
+
+if (count($files)){
+(($_GET['sortby'] == "time") ? arsort($files) : ksort($files));
+
+foreach ($files as $file => $time){
+$all_images += filesize($folder.'/'.$file);
+}
+
+	$subfolder = end($dummy = explode("/", $folder));
+	if($subfolder == 'upimages' or $subfolder == $user){
+		$subfolder = false;
+	}
+	
+	$image_per_page = ($image_per_page ? $image_per_page : 21);
+	$start_from = ($start_from ? $start_from : '');
+	$i = $start_from;
+	$j = 0;
+	foreach ($files as $file => $time){
+	
+	$info = array();
+	$info_pic = array();
+	
+		if ($j < $start_from){
+			$j++;
+			continue;
+		}
+
+		$i++;
+		$total += filesize($folder.'/'.$file);
+		
+		if(!in_array(strtolower(end(explode('.', $file))), $media_extensions)){
+		
+			$info	= getimagesize($config_path_image_upload.(file_exists($folder.'/thumbs/'.$file) ? '/thumbs/' : '/').$file);
+			$info_pic = getimagesize($config_path_image_upload.'/'.$file);
+		}
+
+		if (file_exists($folder.'/thumbs/'.$file)){
+			if($popup){
+				$insert = '<a href="javascript:popupMedia(\\\'{imagepath}/'.($user ? $user.'/' : '').($subfolder ? 'subfolders/'.$subfolder.'/' : '').$file.'\\\', \\\''.$info_pic[0].'\\\', \\\''.$info_pic[1].'\\\')"><img '.($_GET['align'] == 'left' ? 'align="left"' : ($_GET['align'] == 'right' ? 'align="right"' : ($_GET['align'] == 'none' ? '' : $default_align))).' src="{imagepath}/'.($user ? $user.'/' : '').($subfolder ? 'subfolders/'.$subfolder.'/' : '').'thumbs/'.$file.'" alt="'.$file.'" border="0" '.$info[3].' /></a>';
+			}
+			else{
+				$insert = '<a target="_blank" href="{imagepath}/'.($user ? $user.'/' : '').($subfolder ? 'subfolders/'.$subfolder.'/' : '').$file.'"><img '.($_GET['align'] == 'left' ? 'align="left"' : ($_GET['align'] == 'right' ? 'align="right"' : ($_GET['align'] == 'none' ? '' : $default_align))).' src="{imagepath}/'.($user ? $user.'/' : '').($subfolder ? 'subfolders/'.$subfolder.'/' : '').'thumbs/'.$file.'" alt="'.$file.'" border="0" '.$info[3].' /></a>';
+			}
+		} 
+		
+		else {
+			$insert = '<img '.($_GET['align'] == 'left' ? 'align="left"' : ($_GET['align'] == 'right' ? 'align="right"' : ($_GET['align'] == 'none' ? '' : $default_align))).' src="{imagepath}/'.($user ? $user.'/' : '').($subfolder ? 'subfolders/'.$subfolder.'/' : '').$file.'" alt="'.$file.'" border="0" '.$info[3].' />';
+			
+			$media_embed = '<OBJECT id="VIDEO" width="'.$settings -> settings['video_width'].
+							'" height="'.$settings -> settings['video_height'].'" '.
+							'CLASSID="CLSID:6BF52A52-394A-11d3-B153-00C04F79FAA6" type="application/x-oleobject"> '.
+							'<PARAM NAME="URL" VALUE="{imagepath}/'.($user ? $user.'/' : '').
+							($subfolder ? 'subfolders/'.$subfolder.'/' : '').$file.'"> '.
+							'<PARAM NAME="AutoStart" VALUE="'.($settings -> settings['auto_start'] == 'yes' ? 'True' : 'False').'"> '.
+							'<PARAM NAME="uiMode" VALUE="'.$settings -> settings['uimode'].'"></OBJECT>';
+							
+			$media_download = '<a href="{imagepath}/'.($user ? $user.'/' : '').
+							($subfolder ? 'subfolders/'.$subfolder.'/' : '').$file.'">Download this video.</a>';
+			
+		}
+
+		if(in_array(strtolower(end(explode('.', $file))), $allowed_extensions)){
+			$insert = ($area ? '<a '.(file_exists($folder.'/thumbs/'.$file) ? 'title="'.sprintf($echo['insertThumbTitle'], $area).'"' : 'title="'.sprintf($echo['insertImageTitle'], $area).'"').'href="javascript:insertimage(\''.htmlspecialchars($insert).'\')">'.$echo['insert'].'</a>' : '&nbsp;');
+		}
+		elseif(in_array(strtolower(end(explode('.', $file))), $media_extensions)){
+			$insert = ($area ? '<a href="javascript:insertimage(\''.htmlspecialchars($media_embed).'\')">'.$echo['embed'].'</a>' : '&nbsp;');
+			$insert .= ($area ? '<br /><a href="javascript:insertimage(\''.htmlspecialchars($media_download).'\')">'.$echo['insertLink'].'</a>' : '&nbsp;');
+		}
+?>
+
+ <tr <?=cute_that(); ?> align="center">
+ 
+ <? if(in_array(strtolower(end(explode('.', $file))), $media_extensions)){ ?>
+	<td><?=$echo['mediaFile']; ?></td>
+	<td><?=$file; ?></td>
+ <?
+ }
+ else{ ?>
+ 
+ <td><?=(file_exists($folder.'/thumbs/'.$file) ? '<a target="_blank" title="'.$echo['thumbTitle'].'" href="'.$config_path_image_upload.'/thumbs/'.$file.'"><img src="'.$config_path_image_upload.'/thumbs/'.$file.'" height="50px" border="0"></a>' : '<img src="'.$config_path_image_upload.'/'.$file.'" height="50px">'); ?>
+  <td height="17"><a target="_blank" title="<?=$echo['imageTitle']; ?>" href="<?=$config_path_image_upload.'/'.$file; ?>"><?=$file; ?></a>
+  
+  <? } ?>
+  
+  <?=($area ? '<td>'.$insert : ''); ?>
+  <td><a href="?mod=images&amp;action=rename<?=($_POST['subfolder'] ? '&amp;subfolder='.$_POST['subfolder'] : ($_GET['subfolder'] ? '&amp;subfolder='.$_GET['subfolder'] : '')); ?>&amp;image=<?=$file.$query_string; ?>" onclick="if (ren=window.prompt('', '<?=$file; ?>')){window.location.href=this.href+'&name='+ren;}return false;"><?=$echo['rename']; ?></a>
+  <td><a href="javascript:confirmDelete('?mod=images&amp;action=remove<?=($_POST['subfolder'] ? '&amp;subfolder='.$_POST['subfolder'] : ($_GET['subfolder'] ? '&amp;subfolder='.$_GET['subfolder'] : '')); ?>&amp;image=<?=$file.$query_string; ?>')"><?=$echo['remove']; ?></a>
+  
+  <? if(!$area){ ?>
+  <td><?=$echo['moveTo']; ?><br />
+  <form method="post" name="move_file_form_<?=$i; ?>" action="">
+  <?=makeDropDown(get_subfolders(), 'new_path"  onChange="document.move_file_form_'.$i.'.submit();', ($_POST['subfolder'] ? $_POST['subfolder'] : ($_GET['subfolder'] ? $_GET['subfolder'] : $echo['baseFolder']))); ?>
+  <input type="hidden" name="action" value="move_file" />
+  <input type="hidden" name="image" value="<?=$file; ?>" />
+  <? if(!$_GET['subfolder'] or $_GET['subfolder'] == ''){ ?>
+  <input type="hidden" name="subfolder" value="<?=$subfolder; ?>" />
+  <? } ?>
+  </form>
+  <? } ?>
+  
+  <td><?=$info[0]?>x<?=$info[1]?> <?=formatsize(filesize($folder.'/'.$file)); ?>
+
+<?
+		if ($i >= $image_per_page + $start_from){
+			break;
+		}
+	}
+
+	if ($start_from > 0){
+		$previous = $start_from - $image_per_page;
+		$npp_nav .= '<a href="'.$PHP_SELF.'&amp;start_from='.$previous.'&amp;subfolder='.($_POST['subfolder'] ? $_POST['subfolder'] : $_GET['subfolder']).($_GET['area'] ? '&amp;area='.$_GET['area'].'&amp;align='.$_GET['align'] : '').'">&lt;&lt;</a>';
+	}
+
+	if (count($files) > $image_per_page){
+		$npp_nav .= ' [ ';
+		$enpages_count = @ceil(count($files) / $image_per_page);
+		$enpages_start_from = 0;
+		$enpages = '';
+
+		for ($j = 1; $j <= $enpages_count; $j++){
+			if ($enpages_start_from != $start_from){
+				$enpages .= '<a href="'.$PHP_SELF.'&amp;start_from='.$enpages_start_from.'&amp;subfolder='.($_POST['subfolder'] ? $_POST['subfolder'] : $_GET['subfolder']).($_GET['area'] ? '&amp;area='.$_GET['area'].'&amp;align='.$_GET['align'] : '').'">'.$j.'</a> ';
+			} else {
+				$enpages .= ' <b> <u>'.$j.'</u> </b> ';
+			}
+
+			$enpages_start_from += $image_per_page;
+		}
+
+		$npp_nav .= $enpages;
+		$npp_nav .= ' ] ';
+	}
+
+	if (count($files) > $i){
+		$npp_nav .= '<a href="'.$PHP_SELF.'&amp;start_from='.$i.'&amp;subfolder='.($_POST['subfolder'] ? $_POST['subfolder'] : $_GET['subfolder']).($_GET['area'] ? '&amp;area='.$_GET['area'].'&amp;align='.$_GET['align'] : '').'">&gt;&gt;</a>';
+	}
+?>
+
+<tr>
+ <td><br /><br /><?=$npp_nav; ?>
+ <td align="right" colspan="5"><br /><br /><?=sprintf($echo['total'], formatsize($total)); 
+
+if (count($files) > $image_per_page){
+	echo '<tr><td align="right" colspan="6">'.sprintf($echo['allimages'], formatsize($all_images));
+}
+?>
+
+</table>
+
+<?
+}
+
+if (!$area){
+	echofooter();
+}
+/////////////////
+//Function image resize
+/////////////////
+function img_resize($src, $dest, $new_size, $way) {
+
+		$size = getimagesize($src);
+		$img_width = $size[0];
+		$img_height = $size[1];
+		
+		if(($img_width > $new_size) or ($img_height > $new_size)){
+			//Keep dimensions
+			if($way == "normal"){
+				$ratio = $new_size/$img_width;
+				$new_width = $new_size;
+				$new_height = $img_height*$ratio;
+				$off_w = 0;
+				$off_h = 0;
+			}
+			//Crop
+			else {
+				if($img_width > $img_height){
+					$new_width = $new_size;
+					$new_height = $new_size;
+					$off_w = ($img_width-$img_height)/2;
+					$off_h = 0;
+					$img_width = $img_height;
+				}
+				else if ($img_height > $img_width){
+					$new_width = $new_size;
+					$new_height = $new_size;
+					$off_w = 0;
+					$off_h = ($img_height - $img_width)/2;
+					$img_height = $img_width;
+				}
+				else{
+					$new_width = $new_size;
+					$new_height = $new_size;
+					$off_w = 0;
+					$off_h = 0;
+				}
+			}
+			
+switch (strtolower(end(explode('.', $src))))
+	{
+		case 'gif':
+			$im_in = @imagecreatefromgif($src);
+			break;
+		case 'jpg':
+			$im_in = @imagecreatefromjpeg($src);
+			break;
+		case 'png':
+			$im_in = @imagecreatefrompng($src);
+			break;
+	}
+
+			$im_out = @imagecreatetruecolor($new_width, $new_height);
+
+			@imagecopyresampled($im_out, $im_in, 0, 0, $off_w, $off_h, $new_width, $new_height, $img_width, $img_height);
+		}
+		
+		else {
+			@copy($src, $dest);
+		}
+
+switch (strtolower(end(explode('.', $src))))
+	{
+		case 'gif':
+			@imagegif($im_out, $dest);
+			break;
+		case 'jpg':
+			@imagejpeg($im_out, $dest);
+			break;
+		case 'png':
+			@imagepng($im_out, $dest);
+			break;
+	}
+}
+
+///////////////////////////
+//Function dropshadow
+//Adds a dropshadow to the thumb
+//Code taken from http://codewalkers.com/tutorials/83/1.html
+//////////////////////////////////
+function make_shadow($thumb_in) {
+
+define("DS_OFFSET",	 5);
+define("DS_STEPS", 10);
+define("DS_SPREAD", 1);
+
+$background = array("r" => 255, "g" => 255, "b" => 255);
+list($o_width, $o_height) = getimagesize($thumb_in);
+
+$width	= $o_width + DS_OFFSET;
+$height = $o_height + DS_OFFSET;
+$image_sh = @imagecreatetruecolor($width, $height);
+
+$step_offset = array("r" => ($background["r"] / DS_STEPS), "g" => ($background["g"] / DS_STEPS), "b" => ($background["b"] / DS_STEPS));
+
+$current_color = $background;
+for ($i = 0; $i <= DS_STEPS; $i++) {
+	$colors[$i] = @imagecolorallocate($image_sh, round($current_color["r"]), round($current_color["g"]), round($current_color["b"]));
+
+	$current_color["r"] -= $step_offset["r"];
+	$current_color["g"] -= $step_offset["g"];
+	$current_color["b"] -= $step_offset["b"];
+}
+@imagefilledrectangle($image_sh, 0,0, $width, $height, $colors[0]);
+
+for ($i = 0; $i < count($colors); $i++) {
+	@imagefilledrectangle($image_sh, DS_OFFSET, DS_OFFSET, $width, $height, $colors[$i]);
+	$width -= DS_SPREAD;
+	$height -= DS_SPREAD;
+}
+
+switch (strtolower(end(explode('.', $thumb_in))))
+	{
+		case 'gif':
+			$original_image = imageCreateFromGIF($thumb_in);
+			break;
+		case 'jpg':
+			$original_image = imageCreateFromJPEG($thumb_in);
+			break;
+		case 'png':
+			$original_image = imageCreateFromPNG($thumb_in);
+			break;
+	}
+
+  @imagecopymerge($image_sh, $original_image, 0,0, 0,0, $o_width, $o_height, 100);
+
+switch (strtolower(end(explode('.', $thumb_in))))
+	{
+		case 'gif':
+			@imagegif($image_sh, $thumb_in);
+			break;
+		case 'jpg':
+			@imagejpeg($image_sh, $thumb_in);
+			break;
+		case 'png':
+			@imagepng($image_sh, $thumb_in);
+			break;
+	}
+
+}
+
+/////////////////
+//Function Watermark
+//Code taken from http://edge.dev.box.sk/smsread.php?newsid=310
+///////////////////
+function add_watermark($thumb_in,$text="[date]",$hotspot=8,$rgbtext="FFFFFF",$font_size=12,$font="Arial.TTF",$datfmt="d-m-Y",$rgbtsdw="000000",$txp=15,$typ=5,$sxp=1,$syp=1) {
+
+$suffx=substr($thumb_in,strlen($thumb_in)-4,4);
+$suffx = strtolower($suffx);
+if ($suffx==".jpg" || $suffx=="jpeg" || $suffx==".png" || $suffx==".gif") {
+$text=str_replace("[date]",date($datfmt),$text);
+
+if ($suffx==".jpg" || $suffx=="jpeg") {
+$image=imagecreatefromjpeg($thumb_in);
+}
+if ($suffx==".png") {
+$image=imagecreatefrompng($thumb_in);
+}
+if ($suffx == ".gif") {
+$image=imagecreatefromgif($thumb_in);
+}
+
+$rgbtext=HexDec($rgbtext);
+$txtr=floor($rgbtext/pow(256,2));
+$txtg=floor(($rgbtext%pow(256,2))/pow(256,1));
+$txtb=floor((($rgbtext%pow(256,2))%pow(256,1))/pow(256,0));
+
+$rgbtsdw=HexDec($rgbtsdw);
+$tsdr=floor($rgbtsdw/pow(256,2));
+$tsdg=floor(($rgbtsdw%pow(256,2))/pow(256,1));
+$tsdb=floor((($rgbtsdw%pow(256,2))%pow(256,1))/pow(256,0));
+
+$coltext = imagecolorallocate($image,$txtr,$txtg,$txtb);
+$coltsdw = imagecolorallocate($image,$tsdr,$tsdg,$tsdb);
+
+if ($hotspot!=0) {
+$ix=imagesx($image); $iy=imagesy($image); $tsw=strlen($text)*$font_size/imagefontwidth($font)*3; $tsh=$font_size/imagefontheight($font);
+switch ($hotspot) {
+case 1:
+$txp=$txp; $typ=$tsh*$tsh+imagefontheight($font)*2+$typ;
+break;
+case 2:
+$txp=floor(($ix-$tsw)/2); $typ=$tsh*$tsh+imagefontheight($font)*2+$typ;
+break;
+case 3:
+$txp=$ix-$tsw-$txp; $typ=$tsh*$tsh+imagefontheight($font)*2+$typ;
+break;
+case 4:
+$txp=$txp; $typ=floor(($iy-$tsh)/2);
+break;
+case 5:
+$txp=floor(($ix-$tsw)/2); $typ=floor(($iy-$tsh)/2);
+break;
+case 6:
+$txp=$ix-$tsw-$txp; $typ=floor(($iy-$tsh)/2);
+break;
+case 7:
+$txp=$txp; $typ=$iy-$tsh-$typ;
+break;
+case 8:
+$txp=floor(($ix-$tsw)/2); $typ=$iy-$tsh-$typ;
+break;
+case 9:
+$txp=$ix-$tsw-$txp; $typ=$iy-$tsh-$typ;
+break;
+}
+}
+
+ImageTTFText($image,$font_size,0,$txp+$sxp,$typ+$syp,$coltsdw,$font,$text);
+ImageTTFText($image,$font_size,0,$txp,$typ,$coltext,$font,$text);
+
+if ($suffx==".jpg" || $suffx=="jpeg") {
+imagejpeg($image, $thumb_in);
+}
+if ($suffx==".png") {
+imagepng($image, $thumb_in);
+}
+if ($suffx == ".gif") {
+imagegif($image, $thumb_in);
+}
+}
+}
+////////////////////
+//Function mergePix
+//Taken from http://de3.php.net/manual/de/function.imagecopymerge.php
+///////////////////////
+function mergePix($sourcefile,$insertfile, $targetfile, $pos=0,$transition=30)
+{
+//Get the resource id?s of the pictures 
+switch (strtolower(end(explode('.', $sourcefile))))
+	{
+		case 'gif':
+			$sourcefile_id = imageCreateFromGIF($sourcefile);
+			break;
+		case 'jpg':
+			$sourcefile_id = imageCreateFromJPEG($sourcefile);
+			break;
+		case 'png':
+			$sourcefile_id = imageCreateFromPNG($sourcefile);
+			break;
+	}
+switch (strtolower(end(explode('.', $insertfile))))
+	{
+		case 'gif':
+			$insertfile_id = imageCreateFromGIF($insertfile);
+			break;
+		case 'jpg':
+			$insertfile_id = imageCreateFromJPEG($insertfile);
+			break;
+		case 'png':
+			$insertfile_id = imageCreateFromPNG($insertfile);
+			break;
+	}
+
+//Get the sizes of both pix
+	$sourcefile_width=imageSX($sourcefile_id);
+	$sourcefile_height=imageSY($sourcefile_id);
+	$insertfile_width=imageSX($insertfile_id);
+	$insertfile_height=imageSY($insertfile_id);
+
+//middle
+	if( $pos == 0 ) 
+	{ 
+		$dest_x = ( $sourcefile_width / 2 ) - ( $insertfile_width / 2 );
+		$dest_y = ( $sourcefile_height / 2 ) - ( $insertfile_height / 2 );
+	}
+
+//top left
+		if( $pos == 1 )
+		{
+				$dest_x = 10;
+				$dest_y = 10;
+		}
+
+//top right
+		if( $pos == 2 )
+		{
+				$dest_x = $sourcefile_width - $insertfile_width - 10;
+				$dest_y = 10;
+		}
+
+//bottom right
+		if( $pos == 3 )
+		{
+				$dest_x = $sourcefile_width - $insertfile_width - 10;
+				$dest_y = $sourcefile_height - $insertfile_height - 10;
+		}
+
+//bottom left
+		if( $pos == 4 )
+		{
+				$dest_x = 10;
+				$dest_y = $sourcefile_height - $insertfile_height - 10;
+		}
+
+//top middle
+		if( $pos == 5 )
+		{
+				$dest_x = ( ( $sourcefile_width - $insertfile_width ) / 2 );
+				$dest_y = 10;
+		}
+
+//middle right
+		if( $pos == 6 )
+		{
+				$dest_x = $sourcefile_width - $insertfile_width - 10;
+				$dest_y = ( $sourcefile_height / 2 ) - ( $insertfile_height / 2 );
+		}
+
+//bottom middle
+		if( $pos == 7 )
+		{
+				$dest_x = ( ( $sourcefile_width - $insertfile_width ) / 2 );
+				$dest_y = $sourcefile_height - $insertfile_height - 10;
+		}
+
+//middle left
+		if( $pos == 8 )
+		{
+				$dest_x = 10;
+				$dest_y = ( $sourcefile_height / 2 ) - ( $insertfile_height / 2 );
+		}
+
+//The main thing : merge the two pix
+	imageCopyMerge($sourcefile_id, $insertfile_id,$dest_x,$dest_y,0,0,$insertfile_width,$insertfile_height,$transition);
+
+//Create a jpeg/gif/png out of the modified picture 
+switch (strtolower(end(explode('.', $sourcefile))))
+	{
+		case 'gif':
+			imagegif ($sourcefile_id,"$targetfile");
+			break;
+		case 'jpg':
+			imagejpeg ($sourcefile_id,"$targetfile");
+			break;
+		case 'png':
+			imagepng ($sourcefile_id,"$targetfile");
+			break;
+	}
+
+}
+
+function get_subfolders(){
+global $base_folder, $echo;
+
+$dir = opendir($base_folder.'/subfolders');
+
+$all_subfolders = array();
+$all_subfolders['base'] = $echo['baseFolder'];
+while ($subfolder = readdir($dir)){
+	if (is_dir($base_folder.'/subfolders') and $subfolder != "." and $subfolder != ".." and $subfolder != "thumbs"){
+		$all_subfolders[$subfolder] = '- '.$subfolder;
+	}
+}
+
+return $all_subfolders;
+
+}
+
+function dir_is_empty($path){
+$dir = opendir($path);
+$i = 0;
+	while ($files_in_subfolder = readdir($dir)) {
+		if($files_in_subfolder != "." and $files_in_subfolder != ".." and $files_in_subfolder != "thumbs" and $files_in_subfolder != ".htaccess"){
+			$i++;
+		}
+	}
+	if($i == 0) return true;
+	else return false;
+}
+
+function update_stories($old, $new, $preg = false){
+global $sql;
+
+	foreach($sql->select(array('table' => 'story')) as $row){
+		
+		if($preg){
+			$sql->update(array(
+				'table'	 => 'story',
+				'where'	 => array("post_id = ".$row['post_id']),
+				'values' => array(
+									'short' => preg_replace($old, $new, $row['short']),
+									'full' => preg_replace($old, $new, $row['full'])
+									)
+				));
+		}
+		else{
+			$sql->update(array(
+				'table'	 => 'story',
+				'where'	 => array("post_id = ".$row['post_id']),
+				'values' => array(
+									'short' => str_replace($old, $new, $row['short']),
+									'full' => str_replace($old, $new, $row['full'])
+									)
+				));
+		}
+	}
+}
+?>

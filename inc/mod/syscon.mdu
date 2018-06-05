@@ -1,0 +1,199 @@
+<?php
+// ********************************************************************************
+// System Configuration
+// ********************************************************************************
+if (!$action){
+	echoheader('options', $echo['header']);
+?>
+
+<form action="<?=$PHP_SELF; ?>" method="post">
+
+<?
+	if (eregi('MSIE', $_SERVER['HTTP_USER_AGENT']) or eregi('Opera', $_SERVER['HTTP_USER_AGENT'])){
+?>
+
+<script language="JavaScript">
+//Change Cell Content - By SiC/CYAN
+function switchCell(n) {
+	for(i=0;i<navcell.length;i++){
+		navcell[i].className="tab-off";
+		tb[i].style.display="none";
+	}
+	navcell[n].className="tab-on";
+	tb[n].style.display="block";
+}
+</script>
+
+<table border="0" cellpading="0" cellspacing="0" width="650">
+
+<table id="tb_content" cellspacing="0" cellpadding="0" width="100%" border="0">
+ <tr>
+  <td class="content" valign="top">
+   <table cellspacing="0" cellpadding="0" width="100%" border="0">
+	<tr>
+	 <td class="tab-on" id="navcell" onmousedown="switchCell(0)">&nbsp;<?=$echo['nav_sys']; ?>
+	 <td class="tab-off" id="navcell" onmousedown="switchCell(1)">&nbsp;<?=$echo['nav_news']; ?>
+	 <td class="tab-off" id="navcell" onmousedown="switchCell(2)">&nbsp;<?=$echo['nav_comments']; ?>
+	 <td class="tab-off" id="navcell" onmousedown="switchCell(3)">&nbsp;<?=$echo['nav_users']; ?>
+	 <td class="tab-none">&nbsp;
+</table>
+
+<table class="tab-content" id="tb" style="display: block" cellspacing="0" cellpadding="0" width="100%" border="0">
+
+<?
+	} else {
+?>
+
+<div class="opt-space"></div>
+<table class="tab-content" id="tb" cellspacing="0" cellpadding="0" width="100%" border="0">
+
+<?
+	}
+
+	$handle = opendir('./skins');
+	while ($file = readdir($handle)){
+		$file_arr = explode('.', $file);
+
+		if ($file_arr[1] == 'skin'){
+			$sys_con_skins_arr[$file_arr[0]] = $file_arr[0];
+		}
+	}
+
+	$handle = opendir('./inc/lang');
+	while ($file = readdir($handle)){
+		if ($file != '.' and $file != '..' and is_dir('./inc/lang/'.$file)){
+			$sys_con_lang_arr[$file] = file_read('./inc/lang/'.$file.'/langname');
+		}
+	}
+
+// System Configurations
+
+showRow($echo['http_script_dir_title'], $echo['http_script_dir_description'], '<input type="text" name="save_con[http_script_dir]" value="'.$config_http_script_dir.'" size="40">');
+
+showRow($echo['http_home_url_title'], $echo['http_home_url_description'], '<input type="text" name="save_con[http_home_url]" value="'.$config_http_home_url.'" size="40">', 'yes');
+
+showRow($echo['path_image_upload_title'], $echo['path_image_upload_description'], '<input type="text" name="save_con[path_image_upload]" value="'.$config_path_image_upload.'" size="40">', 'yes');
+
+showRow($echo['home_title_title'], $echo['home_title_description'], '<input type="text" name="save_con[home_title]" value="'.$config_home_title.'" size="40">', 'yes');
+
+showRow($echo['rufus_title'], $echo['rufus_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[rufus]', $config_rufus));
+
+showRow($echo['skin_title'], $echo['skin_description'], makeDropDown($sys_con_skins_arr, 'save_con[skin]', $config_skin));
+
+showRow($echo['lang_title'], $echo['lang_description'], makeDropDown($sys_con_lang_arr, 'save_con[lang]', $config_lang));
+
+showRow($echo['admin_mail_title'], $echo['admin_mail_description'], '<input type="text" name="save_con[admin_mail]" value="'.$config_admin_mail.'" size="40">', 'yes');
+
+showRow($echo['date_adjust_title'], $echo['date_adjust_description'], '<input type="text" name="save_con[date_adjust]" value="'.$config_date_adjust.'" size="10"><br /><small>'.$echo['date_adjust_example'].' '.langdate('d M Y - H:i', time() + $config_date_adjust * 60).'</small>', 'yes');
+
+// News options
+?>
+
+</table>
+
+<table class="tab-content" id="tb" cellspacing="0" cellpadding="0" width="100%" border="0">
+
+<?
+showRow($echo['timestamp_active_title'], $echo['timestamp_active_description'], '<input type="text" name="save_con[timestamp_active]" value="'.$config_timestamp_active.'" size="40"><br /><small>'.$echo['timestamp_active_example'].' '.langdate($config_timestamp_active, time()).'</small>');
+
+showRow($echo['use_avatar_title'], $echo['use_avatar_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[use_avatar]', $config_use_avatar));
+
+showRow($echo['date_header_title'], $echo['date_header_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[date_header]', $config_date_header), 'yes');
+
+showRow($echo['date_headerformat_title'], $echo['date_headerformat_description'], '<input type="text" name="save_con[date_headerformat]" value="'.$config_date_headerformat.'" size="40"><br /><small>'.$echo['date_headerformat_example'].' '.langdate($config_date_headerformat, time()).'</small>', 'yes');
+
+showRow($echo['approve_news_title'], $echo['approve_news_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[approve_news]', $config_approve_news));
+
+showRow($echo['user_categories_title'], $echo['user_categories_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[user_categories]', $config_user_categories));
+
+showRow($echo['send_mail_upon_new_title'], $echo['send_mail_upon_new_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[send_mail_upon_new]', $config_send_mail_upon_new), 'yes');
+
+// Comment options
+?>
+
+</table>
+
+<table class="tab-content" id="tb" cellspacing="0" cellpadding="0" width="100%" border="0">
+
+<?
+showRow($echo['send_mail_upon_posting_title'], $echo['send_mail_upon_posting_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[send_mail_upon_posting]', $config_send_mail_upon_posting));
+
+showRow($echo['auto_wrap_title'], $echo['auto_wrap_description'], '<input type="text" name="save_con[auto_wrap]" value="'.$config_auto_wrap.'" size="10">');
+
+showRow($echo['flood_time_title'], $echo['flood_time_description'], '<input type="text" name="save_con[flood_time]" value="'.$config_flood_time.'" size="10">');
+
+showRow($echo['smilies_title'], $echo['smilies_description'], '<input type="text"  name="save_con[smilies]" value="'.$config_smilies.'" size="40">');
+
+showRow($echo['smilies_line_title'], $echo['smilies_line_description'], '<input type="text"	 name="save_con[smilies_line]" value="'.$config_smilies_line.'" size="10">');
+
+showRow($echo['reverse_comments_title'], $echo['reverse_comments_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[reverse_comments]', $config_reverse_comments));
+
+showRow($echo['only_registered_comment_title'], $echo['only_registered_comment_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[only_registered_comment]', $config_only_registered_comment));
+
+showRow($echo['allow_edit_comments_title'], $echo['allow_edit_comments_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[allow_edit_comments]', $config_allow_edit_comments));
+
+showRow($echo['allow_url_instead_mail_title'], $echo['allow_url_instead_mail_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[allow_url_instead_mail]', $config_allow_url_instead_mail));
+
+showRow($echo['timestamp_comment_title'], $echo['timestamp_comment_description'], '<input type="text" name="save_con[timestamp_comment]" value="'.$config_timestamp_comment.'" size="40"><br /><small>Текущий формат: '.langdate($config_timestamp_comment, time()).'</small>');
+
+// Users options
+?>
+
+</table>
+
+<table class="tab-content" id="tb" cellspacing="0" cellpadding="0" width="100%" border="0">
+
+<?
+showRow($echo['user_avatar_title'], $echo['user_avatar_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[user_avatar]', $config_user_avatar));
+
+showRow($echo['path_userpic_upload_title'], $echo['path_userpic_upload_description'], '<input type="text" name="save_con[path_userpic_upload]" value="'.$config_path_userpic_upload.'" size="40">');
+
+showRow($echo['use_images_uf_title'], $echo['use_images_uf_description'], makeDropDown(array('yes' => $echo['sayYes'], 'no' => $echo['sayNo']), 'save_con[use_images_uf]', $config_use_images_uf));
+
+showRow($echo['avatar_w_title'], $echo['avatar_w_description'], '<input type="text" name="save_con[avatar_w]" value="'.$config_avatar_w.'" size="10">');
+
+showRow($echo['avatar_h_title'], $echo['avatar_h_description'], '<input type="text" name="save_con[avatar_h]" value="'.$config_avatar_h.'" size="10">');
+?>
+
+</table>
+
+<input type="hidden" name="mod" value="syscon">
+<input type="hidden" name="action" value="dosavesyscon">
+<br />
+<input type="submit" value="<?=$echo['save']; ?>" accesskey="s">
+
+</form>
+</table>
+
+<?
+	echofooter();
+}
+
+// ********************************************************************************
+// Save System Configuration
+// ********************************************************************************
+if ($action == 'dosavesyscon'){
+	$handler = fopen('./data/config.php', 'w');
+	fwrite($handler, "<?PHP \n\n//System Configurations\n\n\$config_version_name = \"$config_cutenews_version\";\n\n\$config_version_id = \"$config_cutenews_built\";\n\n");
+
+	foreach ($save_con as $name => $value){
+		$value = str_replace('"', '&quot;', $value);
+		$value = str_replace('\'', '&#039;', $value);
+		fwrite($handler, '$config_'.$name.' = "'.$value."\";\n\n");
+	}
+
+	$also_add .= '$config_database = "'.$config_database.'";'."\n\n";
+	$also_add .= '$config_dbname = "'.$config_dbname.'";'."\n\n";
+	$also_add .= '$config_dbuser = "'.$config_dbuser.'";'."\n\n";
+	$also_add .= '$config_dbpassword = "'.$config_dbpassword.'";'."\n\n";
+	$also_add .= '$config_dbprefix = "'.$config_dbprefix.'";'."\n\n";
+	$also_add .= '$config_dbserver = "'.$config_dbserver.'";'."\n\n";
+	$also_add .= '$allowed_extensions = array("gif", "jpg", "png", "bmp", "jpe", "jpeg");';
+
+	fwrite($handler, "$also_add\n\n?>");
+	fclose($handler);
+	include './skins/'.$save_con['skin'].'.skin.php';
+
+	msg('info', $echo['headerSaved'], $echo['changeSaved'], $PHP_SELF.'?mod=syscon');
+}
+?>

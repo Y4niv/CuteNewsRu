@@ -1,0 +1,152 @@
+<?php
+if (!$action){
+	echoheader('addnews', $echo['header']);
+?>
+
+<form method="post" name="addnews" action="<?=$PHP_SELF; ?>" onsubmit="return process_form(this)">
+
+<!-- заголовок -->
+<fieldset id="title"><legend><?=$echo['title']; ?></legend>
+<input type="text" name="title" tabindex="1">
+</fieldset>
+
+<!-- короткая -->
+<fieldset id="short"><legend><?=$echo['short']; ?></legend>
+
+<?
+	echo run_filters('new-advanced-options', 'short');
+?>
+
+<?=insertTag('short'); ?>
+<?=insertSmilies('short', 23); ?>
+<textarea name="short_story" tabindex="4"></textarea>
+</fieldset>
+
+<!-- полная -->
+<fieldset id="full"><legend><?=$echo['full']; ?></legend>
+
+<?
+	echo run_filters('new-advanced-options', 'full');
+?>
+
+<?=insertTag('full'); ?>
+<?=insertSmilies('full', 23); ?>
+<textarea name="full_story" tabindex="5"></textarea>
+</fieldset>
+
+<!-- кнопки -->
+<fieldset id="actions"><legend><?=$echo['actions']; ?></legend>
+<input type="submit" value="<?=$echo['add']; ?>" accesskey="s">
+<input type="button" onclick="preview('addnews');" value="<?=$echo['preview']; ?>" accesskey="p">
+</fieldset>
+
+<fieldset id="options"><legend><?=$echo['options']; ?></legend><div>
+
+<?
+	if ($config_use_avatar == 'yes'){
+?>
+
+<fieldset id="avatar"><legend><?=$echo['avatar']; ?></legend>
+<input onchange="showpreview(this.value, 'previewimage')" tabindex="2" type="text" name="avatar" value="">
+<img name="previewimage" src="skins/images/blank.gif" align="left" style="margin: 5px;">
+</fieldset>
+
+<?
+	}
+?>
+
+<fieldset id="date"><legend><?=$echo['date']; ?></legend>
+<input type="text" name="day" maxlength="2" value="<?=date('d'); ?>" title="<?=$echo['calendar']['day']; ?>">
+
+<select name="month" title="<?=$echo['calendar']['month']; ?>">
+
+<?
+	foreach (array('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec') as $v){
+		echo '<option value="'.$v.'"'.($v == strtolower(date('M')) ? ' selected' : '').'>'.$echo['calendar'][$v].'</option>';
+	}
+?>
+
+</select>
+
+<input type="text" name="year" maxlength="4" value="<?=date('y'); ?>" title="<?=$echo['calendar']['year']; ?>"> <input type="text" name="hour" maxlength="2" value="<?=date('H', (time() + $config_date_adjust * 60)); ?>" title="<?=$echo['calendar']['hour']; ?>">:<input type="text" name="minute" maxlength="2" value="<?=date('i', (time() + $config_date_adjust * 60)); ?>" title="<?=$echo['calendar']['minute']; ?>">:<input type="text" name="second" maxlength="2" value="<?=date('s', (time() + $config_date_adjust * 60)); ?>" title="<?=$echo['calendar']['second']; ?>">
+</fieldset>
+
+<?
+	echo run_actions('new-advanced-options');
+?>
+
+</div></fieldset>
+
+<input type="hidden" name="mod" value="addnews">
+<input type="hidden" name="action" value="doaddnews">
+</form>
+
+<?
+	echofooter();
+}
+
+// ********************************************************************************
+// Do add News to DB
+// ********************************************************************************
+if ($action == 'doaddnews'){
+	if (($added_time = strtotime($day.' '.$month.' '.$year.' '.$hour.':'.$minute.':'.$second)) == -1){
+		$added_time = (time() + $config_date_adjust * 60);
+	}
+
+	if (!$title){
+		$title = substr($short_story, 0, 10).'...';
+	}
+
+	$id = $sql->last_insert_id('news', '', 'id') + 1;
+
+	run_actions('new-save-entry');
+
+	$sql->insert(array(
+	'table'	 => 'news',
+	'values' => array(
+				'date'	   => $added_time,
+				'author'   => $member['username'],
+				'title'	   => replace_news('add', $title),
+				'short'	   => strlen(replace_news('add', $short_story)),
+				'full'	   => strlen(replace_news('add', $full_story)),
+				'avatar'   => $avatar,
+				'category' => $category,
+				'url'	   => ($url ? namespace($url) : namespace(totranslit($title))),
+				'hidden'   => (($config_approve_news == 'yes' and $member['level'] > 2) ? true : false)
+				)
+	));
+
+	$sql->insert(array(
+	'table'	 => 'story',
+	'values' => array(
+				'post_id' => $id,
+				'short'	  => replace_news('add', $short_story),
+				'full'	  => replace_news('add', $full_story)
+				)
+	));
+
+	run_actions('new-save-entry');
+
+	$userdetails = reset($sql->select(array('table' => 'users', 'where' => array("username = ".$member['username']))));
+	
+	$sql->update(array(
+	'table'	 => 'users',
+	'where'	 => array("username = ".$member['username']),
+	'values' => array('publications' => ($userdetails['publications'] + 1))
+	));
+
+
+	if ($config_send_mail_upon_new == 'yes' and $config_admin_mail){
+		cute_mail($config_admin_mail, 'New article on '.$config_home_title,
+		langdate($config_timestamp_comment, $added_time).
+		' A new article was added by '.$member['username']."\n\n".
+		$title."\n\n".
+		replace_news('admin', $short_story)."\n\n".
+		'--'."\n".
+		$config_http_home_url.'?id='.$id
+		);
+	}
+
+	msg('info', $echo['headerAdded'], sprintf($echo['headerAddedComplete'], $title, $PHP_SELF.'?mod=editnews&amp;id='.$id));
+}
+?>

@@ -1,0 +1,410 @@
+<?php
+// ********************************************************************************
+// Edit Templates
+// ********************************************************************************
+$handle = opendir('./data/tpl/');
+while ($file = readdir($handle)){
+	if (substr($file, -3) == 'tpl'){
+		$templates_list[] = substr($file, 0, -4);
+	}
+}
+
+// ********************************************************************************
+// If we want to create new template
+// ********************************************************************************
+if ($action == 'new'){
+	echoheader('options', $echo['new']);
+?>
+
+<form method="post" action="<?=$PHP_SELF; ?>">
+<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%">
+<tr>
+<td><?=$echo['newBasedOn']; ?>:
+<select name="base_template">
+
+<?
+	foreach($templates_list as $single_template){
+		echo '<option value="'.$single_template.'">'.$single_template.'</option>';
+	}
+?>
+
+</select>
+<?=$echo['name']; ?> <input type="text" name="template_name"> &nbsp;<input type="submit" value="<?=$echo['make']; ?>">
+	<input type="hidden" name="mod" value="templates">
+	<input type="hidden" name="action" value="donew">
+</table>
+</form>
+
+<?
+	echofooter();
+	exit;
+}
+
+// ********************************************************************************
+// Do Create the new template
+// ********************************************************************************
+if ($action == 'donew'){
+	if (!eregi('^[a-z0-9_-]+$', $template_name)){
+		msg('error', $echo['error'], $echo['nameError_1'], $PHP_SELF.'?mod=templates&amp;action=new');
+	}
+
+	if (file_exists('./data/tpl/'.$template_name.'.tpl')){
+		msg('error', $echo['error'], $echo['nameError_2'], $PHP_SELF.'?mod=templates&amp;action=new');
+	}
+
+	if ($base_template){
+		$base_file = './data/tpl/'.$base_template.'.tpl';
+	} else {
+		$base_file = './data/tpl/Default.tpl';
+	}
+
+	copy($base_file, './data/tpl/'.$template_name.'.tpl');
+	@chmod('./data/tpl/'.$template_name.'.tpl', chmod);
+	msg('info', $echo['headerMaked'], $echo['templateMaked'].' <b>'.$template_name.'</b><br>', $PHP_SELF.'?mod=templates');
+}
+
+// ********************************************************************************
+// Deleting template, preparation
+// ********************************************************************************
+if ($action == 'delete'){
+	echoheader('info', $echo['headerDelete']);
+?>
+
+<form method="post" action="<?=$PHP_SELF; ?>">
+<?=$echo['areYouSureDelete']; ?> <b><?=$do_template; ?></b>?<br /><br />
+<input type="submit" value="<?=$echo['yesDelete']; ?>">
+&nbsp;<input onClick="document.location='<?=$PHP_SELF; ?>?mod=templates';" type="button" value="<?=$echo['cancel']; ?>">
+<input type="hidden" name="mod" value="templates">
+<input type="hidden" name="action" value="dodelete">
+<input type="hidden" name="do_template" value="<?=$do_template; ?>">
+</form>
+
+<?
+	echofooter();
+	exit;
+}
+
+// ********************************************************************************
+// Do Deleting template
+// ********************************************************************************
+if ($action == 'dodelete'){
+	unlink('./data/tpl/'.$do_template.'.tpl');
+	msg('info', $echo['headerDeleted'], '<b>'.$do_template.'</b> '.$echo['templateDeleted'], $PHP_SELF.'?mod=templates');
+}
+
+
+// ********************************************************************************
+// Show The Template Manager
+// ********************************************************************************
+if (!$action){
+	if (!$do_template){
+		$do_template = 'Default';
+		$show_delete_link = '';
+	} elseif (strtolower($do_template) != 'default'){
+		$show_delete_link = '<a href="'.$PHP_SELF.'?mod=templates&amp;action=delete&amp;do_template='.$do_template.'">'.$echo['delete'].'</a>';
+	}
+
+	require './data/tpl/'.$do_template.'.tpl';
+
+	foreach (array('template_active', 'template_comment', 'template_form', 'template_full', 'template_prev_next', 'template_cprev_next', 'template_dateheader') as $template){
+		$$template = str_replace('<', '&lt;', $$template);
+		$$template = str_replace('>', '&gt;', $$template);
+	}
+
+	echoheader('options', $echo['header']);
+?>
+
+<form method="get" action="<?=$PHP_SELF; ?>">
+<table border="0" cellpading="0" cellspacing="0" height="77">
+<tr>
+ <td width="373" height="75">
+  <b><?=$echo['managment']; ?></b>
+  <table border="0" cellpading="0" cellspacing="0" width="347" class="panel" height="50">
+   <tr>
+	<td width="126" height="23">&nbsp;<?=$echo['chosen']; ?>
+	<td width="225" height="23">:&nbsp; <b><?=$do_template; ?></b>
+	<tr>
+	<td width="126" height="27">&nbsp;<?=$echo['choseOther']; ?>
+	<td width="225" height="27">:&nbsp;
+	 <select size="1" name="do_template">
+
+<?
+	foreach ($templates_list as $single_template){
+		echo '<option '.(($single_template == $do_template) ? 'selected' : '').' value="'.$single_template.'">'.$single_template.'</option>';
+	}
+?>
+
+</select>
+<input type="submit" value="Go">
+<tr>
+ <td width="351" height="25" colspan="2">
+  &nbsp;<a href="<?=$PHP_SELF; ?>?mod=templates&amp;action=new"><?=$echo['makeNew']; ?></a>&nbsp;<?=$show_delete_link; ?>
+  <input type="hidden" name="mod" value="templates">
+</table>
+
+ <td width="268" height="75" align="center">
+ <!-- HELP -->
+ <table cellspacing="0" cellpadding="0">
+  <tr>
+   <td width="25" align="middle"><img border="0" src="skins/images/help_small.gif">
+   <td >&nbsp;<a onClick="javascript:Help('templates')" href="#"><?=$echo['help']; ?></a>
+ </table>
+<!-- END HELP -->
+</table>
+</form>
+
+<img height="20" border="0" src="skins/images/blank.gif" width="1">
+<br />
+<b><?=$echo['editParts']; ?>:</b>
+<form method="post" action="<?=$PHP_SELF; ?>">
+<table width="100%">
+<tr>
+<!-- start active news -->
+ <td height="7" colspan="2"><b><a style="font-size:12px" href="javascript:ShowOrHide('active-news1', 'active-news2')"><?=$echo['part_active']; ?></a></b>
+ <tr id="active-news1" style="display: none;">
+ <td class="panel">
+
+<?
+	$template_variables_active = $echo['template_variables_active'];
+	$template_variables_active = run_filters('template-variables-active', $template_variables_active);
+
+	ksort($template_variables_active);
+	reset($template_variables_active);
+?>
+
+<table>
+
+<?
+	foreach ($template_variables_active as $variable_active => $variable_active_description){
+		echo '<tr>
+		<td><span class="vinfo" title="'.$variable_active_description.'">'.urldecode($variable_active).'</span>
+		<td>- '.$variable_active_description;
+	}
+?>
+
+</table>
+
+<tr id="active-news2" style="display: none;">
+ <td colspan="2"><textarea rows="9" style="width: 100%;overflow-x: hidden; overflow-y: visible; padding: 5px;" name="edit_active"><?=$template_active; ?></textarea><br />
+<!-- End active news -->
+
+<tr>
+<!-- Start full story -->
+ <td height="7" class="alternate" colspan="2"><b><a style="font-size:12px" href="javascript:ShowOrHide('full-story1', 'full-story2')"><?=$echo['part_full']; ?></a></b>
+<tr id="full-story1" style="display: none;">
+ <td class="panel">
+
+<?
+	$template_variables_full = $echo['template_variables_full'];
+	$template_variables_full = run_filters('template-variables-full', $template_variables_full);
+
+	ksort($template_variables_full);
+	reset($template_variables_full);
+?>
+
+<table>
+
+<?
+	foreach ($template_variables_full as $variable_full => $variable_full_description){
+		echo '<tr>
+		<td><span class="vinfo" title="'.$variable_full_description.'">'.urldecode($variable_full).'</span>
+		<td>- '.$variable_full_description;
+	}
+?>
+
+</table>
+
+<tr id="full-story2" style="display: none;">
+ <td height="8" colspan="2"><textarea rows="9" style="width: 100%;overflow-x: hidden; overflow-y: visible; padding: 5px;" name="edit_full"><?=$template_full; ?></textarea><br />
+<!-- End full story -->
+
+<tr>
+<!-- Start comment -->
+ <td height="7" class="alternate" colspan="2"><b><a style="font-size:12px" href="javascript:ShowOrHide('comment1', 'comment2')"><?=$echo['part_comment']; ?></a></b>
+<tr id="comment1" style="display: none;">
+ <td class="panel">
+
+<?
+	$template_variables_comments = $echo['template_variables_comments'];
+	$template_variables_comments = run_filters('template-variables-comments', $template_variables_comments);
+
+	ksort($template_variables_comments);
+	reset($template_variables_comments);
+?>
+
+<table>
+
+<?
+	foreach ($template_variables_comments as $variable_comments => $variable_comments_description){
+		echo '<tr>
+		<td><span class="vinfo" title="'.$variable_comments_description.'">'.urldecode($variable_comments).'</span>
+		<td>- '.$variable_comments_description;
+	}
+?>
+
+</table>
+
+<tr id="comment2" style="display: none;">
+ <td height="8" colspan="2"><textarea class="medium" style="width: 100%;overflow-x: hidden; overflow-y: visible; padding: 5px;" name="edit_comment"><?=$template_comment; ?></textarea><br />
+<!-- End comment -->
+
+<tr>
+<!-- Start add comment form -->
+<td height="7" class="alternate" colspan="2"><b><a style="font-size:12px" href="javascript:ShowOrHide('add-comment-form1', 'add-comment-form2')"><?=$echo['part_commentform']; ?></a></b>
+<tr id="add-comment-form1" style="display: none;">
+ <td class="panel">
+
+<?
+	$template_variables_commentform = $echo['template_variables_commentform'];
+	$template_variables_commentform = run_filters('template-variables-commentform', $template_variables_commentform);
+
+	ksort($template_variables_commentform);
+	reset($template_variables_commentform);
+?>
+
+<table>
+
+<?
+	foreach ($template_variables_commentform as $variable_commentform => $variable_commentform_description){
+		echo '<tr>
+		<td><span class="vinfo" title="'.$variable_commentform_description.'">'.urldecode($variable_commentform).'</span>
+		<td>- '.$variable_commentform_description;
+	}
+?>
+
+</table>
+
+<tr id="add-comment-form2" style="display: none;">
+<td height="8" colspan="2"><textarea rows="9" style="width: 100%;overflow-x: hidden; overflow-y: visible; padding: 5px;" name="edit_form"><?=$template_form; ?></textarea><br />
+<!-- End add comment form -->
+
+<tr>
+<!-- Start previous & next -->
+ <td height="7" class="alternate" colspan="2"><b><a style="font-size:12px" href="javascript:ShowOrHide('previous-next1', 'previous-next2')" ><?=$echo['part_pagination']; ?></a></b>
+<tr id="previous-next1" style="display: none;">
+ <td class="panel">
+
+<?
+	$template_variables_prevnext = $echo['template_variables_prevnext'];
+	$template_variables_prevnext = run_filters('template-variables-prevnext', $template_variables_prevnext);
+
+	ksort($template_variables_prevnext);
+	reset($template_variables_prevnext);
+?>
+
+<table>
+
+<?
+	foreach ($template_variables_prevnext as $variable_prevnext => $variable_prevnext_description) {
+		echo '<tr><td><span class="vinfo" title="'.$variable_prevnext_description.'">'.urldecode($variable_prevnext).'</span>
+		<td>- '.$variable_prevnext_description;
+	}
+?>
+
+</table>
+
+<tr id="previous-next2" style="display: none;">
+ <td height="8" colspan="2"><textarea class="small" style="width: 100%;overflow-x: hidden; overflow-y: visible; padding: 5px;" name="edit_prev_next"><?=$template_prev_next; ?></textarea>
+<!-- End previous & next -->
+
+<tr>
+<!-- Start comments previous & next -->
+ <td height="7" class="alternate" colspan="2"><b><a style="font-size:12px" href="javascript:ShowOrHide('cprevious-next1', 'cprevious-next2')"><?=$echo['part_commpagination']; ?></a></b>
+<tr id="cprevious-next1" style="display: none;">
+ <td class="panel">
+
+<?
+	$template_variables_cprevnext = $echo['template_variables_cprevnext'];
+	$template_variables_cprevnext = run_filters('template-variables-cprevnext', $template_variables_cprevnext);
+
+	ksort($template_variables_cprevnext);
+	reset($template_variables_cprevnext);
+?>
+
+<table>
+
+<?
+	foreach ($template_variables_cprevnext as $variable_cprevnext => $variable_cprevnext_description) {
+		echo '<tr>
+		<td><span class="vinfo" title="'.$variable_cprevnext_description.'">'.urldecode($variable_cprevnext).'</span>
+		<td>- '.$variable_cprevnext_description;
+	}
+?>
+
+</table>
+
+<tr id="cprevious-next2" style="display: none;">
+ <td height="8"	 colspan="2"><textarea class="small" style="width: 100%;overflow-x: hidden; overflow-y: visible; padding: 5px;" name="edit_cprev_next"><?=$template_cprev_next; ?></textarea>
+<!-- End comments previous & next -->
+
+<tr>
+<!-- Start dateheader -->
+ <td height="7" class="alternate" colspan="2"><b><a style="font-size:12px" href="javascript:ShowOrHide('dateheader1', 'dateheader2')"><?=$echo['part_dateheader']; ?></a></b>
+<tr id="dateheader1" style="display: none;">
+ <td class="panel">
+
+<?
+	$template_variables_dateheader = $echo['template_variables_dateheader'];
+	$template_variables_dateheader = run_filters('template-variables-dateheader', $template_variables_dateheader);
+
+	ksort($template_variables_dateheader);
+	reset($template_variables_dateheader);
+?>
+
+<table>
+
+<?
+	foreach ($template_variables_dateheader as $variable_dateheader => $variable_dateheader_description){
+		echo '<tr>
+		<td><span class="vinfo" title="'.$variable_dateheader_description.'">'.urldecode($variable_dateheader).'</span>
+		<td>- '.$variable_dateheader_description;
+	}
+?>
+
+</table>
+
+<tr id="dateheader2" style="display: none;">
+<td height="8" colspan="2"><textarea class="small" style="width: 100%;overflow-x: hidden; overflow-y: visible; padding: 5px;" name="edit_dateheader"><?=$template_dateheader; ?></textarea>
+<!-- End dateheader -->
+
+<tr>
+ <td height="8" colspan="2">
+  <input type="hidden" name="mod" value="templates">
+  <input type="hidden" name="action" value="dosavetemplates">
+  <input type="hidden" name="do_template" value="<?=$do_template; ?>">
+  <br /><input type="submit" value="<?=$echo['save']; ?>" accesskey="s">
+</table>
+</div>
+</form>
+
+<?
+	echofooter();
+}
+
+// ********************************************************************************
+// Do Save Changes to Templates
+// ********************************************************************************
+if ($action == 'dosavetemplates'){
+	foreach (array('edit_active', 'edit_comment', 'edit_form', 'edit_full', 'edit_prev_next', 'edit_cprev_next', 'edit_dateheader') as $template){
+		$$template = stripslashes($$template);
+	}
+
+	if (!$do_template){
+		$do_template = 'Default';
+	}
+
+	$template_file = './data/tpl/'.$do_template.'.tpl';
+	$handle = fopen($template_file, 'w');
+	fwrite($handle, "<?php\n///////////////////// TEMPLATE $do_template /////////////////////\n\n\n");
+	fwrite($handle, "\$template_active = <<<HTML\n$edit_active\nHTML;\n\n\n");
+	fwrite($handle, "\$template_full = <<<HTML\n$edit_full\nHTML;\n\n\n");
+	fwrite($handle, "\$template_comment = <<<HTML\n$edit_comment\nHTML;\n\n\n");
+	fwrite($handle, "\$template_form = <<<HTML\n$edit_form\nHTML;\n\n\n");
+	fwrite($handle, "\$template_prev_next = <<<HTML\n$edit_prev_next\nHTML;\n\n\n");
+	fwrite($handle, "\$template_cprev_next = <<<HTML\n$edit_cprev_next\nHTML;\n\n\n");
+	fwrite($handle, "\$template_dateheader = <<<HTML\n$edit_dateheader\nHTML;\n\n\n");
+	fwrite($handle, "///////////////////// TEMPLATE Default /////////////////////\n?>");
+
+	msg('info', $echo['headerSaved'], $echo['templateSaved'], $PHP_SELF.'?mod=templates&amp;do_template='.$do_template);
+}
+?>

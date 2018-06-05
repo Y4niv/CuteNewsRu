@@ -1,0 +1,441 @@
+<?php
+// ********************************************************************************
+// List All Available Users + Show Add User Form
+// ********************************************************************************
+if (!$action or $action == 'list'){
+	echoheader('users', $echo['header']);
+?>
+
+<table border="0" cellpading="2" cellspacing="2" width="654">
+ <tr>
+  <td width="654" colspan="6">
+   <table border="0" width="100%" cellspacing="0" cellpadding="0">
+	<tr>
+	 <td valign="bottom" width="311" valign="top" height="1"><b><?=$echo['addUser']; ?></b>
+	 <td width="5" valign="top" rowspan="3" height="81">
+	 <td valign="bottom" width="330" height="1"><b><?=$echo['levelInfo']; ?></b>
+	<tr>
+	 <td width="311" rowspan="2" valign="top" height="60">
+	  <table class="panel" cellspacing="0" cellpadding="0" width="100%">
+	  <form method="post" action="<?=$PHP_SELF; ?>" onsubmit="return process_form(this)">
+	   <tr>
+		<td>&nbsp;<?=$echo['name']; ?>
+		<td><input size="21" type="text" name="regnickname">
+	   <tr>
+		<td>&nbsp;<?=$echo['login']; ?>
+		<td><input size="21" type="text" name="regusername">
+	   <tr>
+		<td>&nbsp;<?=$echo['password']; ?>
+		<td><input size="21" type="text" name="regpassword">
+	   <tr>
+		<td>&nbsp;<?=$echo['mail']; ?>
+		<td><input size="21" type="text" name="regemail">
+	   <tr>
+		<td>&nbsp;<?=$echo['level']; ?>
+		<td>
+		 <select name="reglevel">
+		  <option value="4">4 (<?=$echo['level_4']; ?>)</option>
+		  <option selected value="3">3 (<?=$echo['level_3']; ?>)</option>
+		  <option value="2">2 (<?=$echo['level_2']; ?>)</option>
+		  <option value="1">1 (<?=$echo['level_1']; ?>)</option>
+		 </select>
+	   <tr>
+		<td>&nbsp;
+		<td height="35">
+		 <input type="submit" value="<?=$echo['add']; ?>">
+		 <input type="hidden" name="action" value="adduser">
+		 <input type="hidden" name="mod" value="editusers">
+	  </form>
+	  </table>
+	 <td width="330" height="1" valign="top">
+	  <table class="panel" cellspacing="3" cellpadding="0" width="100%">
+	   <tr>
+		<td valign="top"><?=$echo['levelDescription']; ?>
+	  </table>
+	<tr>
+	 <td width="330" valign="top" align="center" height="70">
+	  <br />
+	  <table height="25" cellspacing="0" cellpadding="0">
+	   <tr>
+		<td width="25" align="middle"><img border="0" src="skins/images/help_small.gif" width="25" height="25">
+		<td>&nbsp;<a onClick="javascript:Help('users')" href="#"><?=$echo['help']; ?></a>&nbsp;
+	  </table>
+   </table>
+  <tr>
+   <td width="654" colspan="7">
+  <tr>
+   <td width="650" colspan="7">
+   <form method="post" name="editusers" action="<?=$PHP_SELF; ?>?mod=editusers&amp;action=mass_delete_users">
+<script language="JavaScript" type="text/javascript">
+<!--
+function ckeck_uncheck_all() {
+	   var frm = document.editusers;
+	   for (var i=0;i<frm.elements.length;i++) {
+			   var elmnt = frm.elements[i];
+			   if (elmnt.type=="checkbox") {
+					   if(frm.master_box.checked == true){ elmnt.checked=false; }
+		   else{ elmnt.checked=true; }
+			   }
+	   }
+	   if(frm.master_box.checked == true){ frm.master_box.checked = false; }
+   else{ frm.master_box.checked = true; }
+}
+
+-->
+</script>
+<br /><b><?=$echo['users']; ?></b>
+  <tr>
+   <td width="125" class="panel" height="21" align="center"><b><?=$echo['name']; ?></b>
+   <td width="150" class="panel" align="center"><b><?=$echo['regDate']; ?></b>
+   <td width="210" class="panel" align="center"><b><?=$echo['lastVisit']; ?></b>
+   <td width="75" class="panel" align="center"><b><?=$echo['publications']; ?></b>
+   <td width="100" class="panel" align="center"><b><?=$echo['level']; ?></b>
+   <td width="70" class="panel" align="center"><b><?=$echo['action']; ?></b>
+   <td width="15" class="panel" align="center"><input type="checkbox" name="master_box" title="<?=$echo['checkall']; ?>" onclick="javascript:ckeck_uncheck_all()">
+
+<?
+	foreach($sql->select(array('table' => 'users')) as $row){
+?>
+
+  <tr <?=cute_that(); ?>>
+   <td width="125" align="center">&nbsp;<?=($row['name'] ? $row['name'] : $row['username']); ?>
+   <td width="150" align="center"><?=langdate('j M Y', $row['date']); ?>
+   <td width="210" align="center"><?=($row['last_visit'] ? langdate('j M Y', $row['last_visit']) : ''); ?>
+   <td width="75" align="center"><?=$row['publications']; ?>
+   <td width="100" align="center">&nbsp;<?=$echo['level_'.$row['level']]; ?>
+   <td width="70" align="center"><a onclick="window.open('<?=$PHP_SELF; ?>?mod=editusers&amp;action=edituser&amp;id=<?=$row['id']; ?>', '_Useredit', 'height=450,resizable=yes,scrollbars=yes,width=500');return false;" href="#"><?=$echo['edit']; ?></a>
+   <td width="15" align="center"><input name="selected_users[]" value="<?=$row['id']; ?>" type="checkbox">
+
+<?
+	}
+?>
+
+</table>
+<p align="right"><input type="submit" value="<?=$echo['delete']; ?>" accesskey="d">
+</form>
+
+<?
+	echofooter();
+}
+
+// ********************************************************************************
+// Add User
+// ********************************************************************************
+if ($action == 'adduser'){
+	if (!$regusername or !$regpassword){
+		header('Location: '.$PHP_SELF.'?mod=editusers');
+		die();
+	}
+
+	if ($sql->select(array('table' => 'users', 'where' => array("username = $regusername")))){
+		msg('error', $echo['error'], $echo['nameError'], $PHP_SELF.'?mod=editusers');
+	}
+
+	$sql->insert(array(
+	'table'	 => 'users',
+	'values' => array(
+				'date'		=> time() + $config_date_adjust * 60,
+				'level'		=> $reglevel,
+				'username'	=> $regusername,
+				'password'	=> md5x($regpassword),
+				'name'		=> $regnickname,
+				'mail'		=> $regemail,
+				'hide_mail' => 0
+				)
+	));
+
+	@mkdir('./data/upimages/'.totranslit($regusername), chmod);
+	@mkdir('./data/upimages/'.totranslit($regusername).'/thumbs', chmod);
+	msg('info', $echo['headerAdded'], '<b>'.($regnickname ? $regnickname : $regusername).'</b> '.$echo['userAddedAs'].' <b>'.$echo['level_'.$reglevel].'</b>', $PHP_SELF.'?mod=editusers');
+}
+
+// ********************************************************************************
+// Edit User Details
+// ********************************************************************************
+if ($action == 'edituser'){
+
+	foreach ($sql->select(array('table' => 'users', 'where' => array("id = $id"))) as $row){
+?>
+
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=<?=$echo['charset']; ?>">
+<title><?=($row['name'] ? $row['name'] : $row['username']); ?></title>
+<link href="skins/default.css" rel="stylesheet" type="text/css" media="screen">
+</head><body>
+<form action="<?=$PHP_SELF; ?>" method="post" enctype="multipart/form-data">
+
+
+<?
+		if ($config_user_avatar == 'yes'){
+			if ($row['avatar']){
+				$row['avatar'] = '<img src="'.$config_path_userpic_upload.'/'.$row['username'].'.'.$row['avatar'].'" style="margin: 5px; border: 0px;">';
+				$delava = '<input type="checkbox" name="delavatar" id="delavatar">&nbsp;<label for="delavatar">'.$echo['avatarRemove'].'</label>';
+			} else {
+				unset($row['avatar'], $delava);
+			}
+
+			$showrow_avatar = '<tr '.cute_that().'><td height="21">&nbsp;&nbsp;'.$echo['avatar'].':<td height="21"><input type="hidden" name="max_file_size" value="110000"><input tabindex="6" name="newavatar" type="file" size="27"></td><td>'.$delava;
+		 } else {
+			 unset($row['avatar']);
+		 }
+?>
+
+<table border="0" height="1" width="100%" cellspacing="0" cellpadding="0">
+<form method="post" action="<?=$PHP_SELF; ?>" name="personal" enctype="multipart/form-data">
+ <tr>
+  <td colspan="2" style="padding-bottom: 10px;"><b><?=$echo['info']; ?></b>
+ <tr <?=cute_that(); ?>>
+  <td height="21">&nbsp;&nbsp;<?=$echo['login']; ?>
+  <td height="21" width="400" colspan="2"><input type="hidden" name="editusername" value="<?=$row['username']; ?>"><?=$row['username']; ?>
+ <tr <?=cute_that(); ?>>
+  <td height="21" width="150">&nbsp;&nbsp;<?=$echo['regDate']; ?>
+  <td height="21" width="400" colspan="2"><?=langdate('l, j M Y - h:i', $row['date']); ?>
+ <tr <?=cute_that(); ?>>
+  <td height="21">&nbsp;&nbsp;<?=$echo['level']; ?>
+  <td height="21" width="400" colspan="2">
+   <select size="1" name="editlevel">
+	<option value="1"<?=($row['level'] == 1 ? ' selected' : ''); ?>><?=$echo['level_1']; ?></option>
+	<option value="2"<?=($row['level'] == 2 ? ' selected' : ''); ?>><?=$echo['level_2']; ?></option>
+	<option value="3"<?=($row['level'] == 3 ? ' selected' : ''); ?>><?=$echo['level_3']; ?></option>
+	<option value="4"<?=($row['level'] == 4 ? ' selected' : ''); ?>><?=$echo['level_4']; ?></option>
+   </select>
+
+<?
+		if ($row['level'] != 4){
+?>
+
+<tr <?=cute_that(); ?>>
+ <td height="21" width="150">&nbsp;&nbsp;<?=$echo['publications']; ?>
+ <td height="21" width="400" colspan="2"><?=$row['publications']; ?>
+
+<?
+			if ($row['level'] == 3){
+				function allow_categories($that){
+				global $sql, $id;
+
+					foreach ($sql->select(array('table' => 'users', 'where' => array("id = $id"))) as $row){
+						$categories = explode(',', $row['categories']);
+
+						if (in_array($that, $categories)){
+							return 'checked';
+						}
+					}
+				}
+
+				if ($config_user_categories == 'yes'){
+?>
+
+<tr <?=cute_that(); ?>>
+ <td height="21" width="150">&nbsp;&nbsp;<?=$echo['categories']; ?>
+ <td height="21" width="400" colspan="2"><?=category_get_tree('&nbsp;', '<label for="cat{id}"><input type="checkbox" [php]allow_categories({id})[/php] name="allowcat[{id}]" id="cat{id}">&nbsp;{name}</label><br />'); ?>
+
+<?
+				}
+			}
+		}
+?>
+
+<tr>
+ <td colspan="2" style="padding-top: 10px;padding-bottom: 10px;"><b><?=$echo['profile']; ?></b>
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['newPass']; ?>
+ <td height="21" width="400" colspan="2"><input name="editpassword">&nbsp;&nbsp;&nbsp;<?=$echo['ifNeedNewPass']; ?>
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['name']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editnickname" value="<?=$row['name']; ?>">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['mail']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editmail" value="<?=$row['mail']; ?>">&nbsp;&nbsp;&nbsp;<input type="checkbox" name="edithidemail" <?=($row['hide_mail'] ? 'checked' : ''); ?> id="edithidemail">&nbsp;<label for="edithidemail"><?=$echo['hideMail']; ?></label>
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['homepage']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editsite" value="<?=$row['homepage']; ?>">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['icq']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editicq" value="<?=$row['icq']; ?>">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['lj']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editlj" value="<?=$row['lj_username']; ?>">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['ljPass']; ?>
+ <td height="21" width="400" colspan="2"><input name="editljpass" disabled="disabled">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['from']; ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editfrom" value="<?=$row['lj_password']; ?>">
+<tr <?=cute_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?=$echo['about']; ?>
+ <td height="21"><textarea type="text" name="editabout" style="width: 300px; height: 120px; padding: 5px; overflow-x: hidden; overflow-y: visible; "><?=replace_news('admin', $row['about']); ?></textarea><?=$row['avatar']; ?>
+ <td width="200" align="left">&nbsp;
+<?=$showrow_avatar; ?>
+<tr>
+ <td height="1" colspan="2" colspan="3"><br />
+  <input type="submit" value="<?=$echo['save']; ?>" accesskey="s">
+  <input type="hidden" name="id" value="<?=$id; ?>">
+  <input type="hidden" name="mod" value="editusers">
+  <input type="hidden" name="action" value="doedituser">
+</form>
+</table>
+
+</form>
+</body>
+</html>
+
+<?
+	}
+}
+
+// ********************************************************************************
+// Do Edit User
+// ********************************************************************************
+if ($action == 'doedituser'){
+	$userpic_folder = cute_parse_url($config_path_userpic_upload);
+	$userpic_folder = $userpic_folder['abs'];
+
+	if (!@opendir($userpic_folder)){
+		@mkdir($userpic_folder, chmod);
+		@chmod($userpic_folder, chmod);
+	}
+
+	foreach ($sql->select(array('table' => 'users', 'where' => array("id = $id"))) as $row){
+		if ($delavatar){
+			unset($change_avatar);
+			@unlink($userpic_folder.'/'.$row['username'].'.'.$row['avatar']);
+		} else {
+			$change_avatar = $row['avatar'];
+		}
+
+		if ($editljpass){
+			$editljpass = $editljpass;
+		} else {
+			$editljpass = $row['lj_password'];
+		}
+
+		if ($newavatar){
+			// Загружаем файл(ы)
+			$avatarname = $_FILES['newavatar']['name'];
+			$avatartemp = $_FILES['newavatar']['tmp_name'];
+			$type		= end($type = explode('.', $avatarname));
+
+			// Проверяем картинку или фигню какую-то пытается закачать юзер
+			if (!in_array($type, $allowed_extensions) or !in_array(strtolower($type), $allowed_extensions)){
+				@unlink($userpic_folder.'/'.$avatarname);
+
+				$change_avatar = $row['avatar'];
+				$avatar_error  = $echo['avatarError_1'];
+			} else {
+				@unlink($userpic_folder.'/'.$row['username'].'.'.$row['avatar']);
+				@move_uploaded_file($avatartemp, $userpic_folder.'/'.$avatarname);
+
+				$size = @getimagesize($userpic_folder.'/'.$avatarname);
+
+				// Проверяем размеры загружаемой картинки
+				if (($size[0] > $config_avatar_w) and ($size[1] > $config_avatar_h)){
+					$avatar_error  = $echo['avatarError_2'].' '.$config_avatar_w.'x'.$config_avatar_h;
+					$change_avatar = $row['avatar'];
+					@unlink($userpic_folder.'/'.$avatarname);
+				} else {
+					$change_avatar = @rename($userpic_folder.'/'.$avatarname, $userpic_folder.'/'.$row['username'].'.'.$type);
+					$change_avatar = $type;
+				}
+			}
+		}
+
+		if ($editpassword){
+			$row['password'] = md5x($editpassword);
+			$_SESSION['md5_password'] = $row['password'];
+
+			if (cookie){
+				setcookie('md5_password', $row['password']);
+			}
+		}
+	}
+
+	if (is_array($allowcat)){
+		foreach ($allowcat as $k => $v){
+			$categories[] = $k;
+		}
+
+		$categories = join(',', $categories);
+	}
+
+	$sql->update(array(
+	'table'	 => 'users',
+	'where'	 => array("id = $id"),
+	'values' => array(
+				'password'	  => $row['password'],
+				'name'		  => replace_comment('add', $editnickname),
+				'mail'		  => $editmail,
+				'hide_mail'	  => ($edithidemail ? true : false),
+				'avatar'	  => $change_avatar,
+				'homepage'	  => replace_comment('add', $editsite),
+				'icq'		  => replace_comment('add', $editicq),
+				'location'	  => replace_comment('add', $editfrom),
+				'about'		  => replace_comment('add', $editabout),
+				'lj_username' => replace_comment('add', $editlj),
+				'lj_password' => $editljpass,
+				'categories'  => $categories,
+				'level'		  => $editlevel
+				)
+	));
+?>
+
+<br /><br /><br /><br /><center><b><?=$echo['changeSaved'].$avatar_error; ?>
+<br /><br /><a href="#" onClick="window.close();"><?=$echo['closeWindow']; ?></a>
+
+<?
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Массовое удаление пользователей
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'mass_delete_users'){
+	if (!$selected_users){
+		msg('error', $echo['error'], $echo['usersNotChoicen'], $PHP_SELF.'?mod=editusers');
+	}
+
+	echoheader('options', $echo['headerDeleteUsers']);
+?>
+
+<form method="post" action="<?=$PHP_SELF; ?>">
+<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%">
+ <tr>
+  <td>
+   <?=$echo['areYouSure']; ?> (<b><?=count($selected_users); ?></b>)?<br /><br />
+   <input type="button" value="	  <?=$echo['sayNo']; ?>	  " onclick="javascript:document.location='<?=$PHP_SELF; ?>?mod=editusers'"> &nbsp; <input type="submit" value="   <?=$echo['sayYes']; ?>	">
+   <input type="hidden" name="action" value="do_mass_delete_users">
+   <input type="hidden" name="mod" value="editusers">
+
+<?
+	foreach($selected_users as $userid){
+		echo '<input type="hidden" name="selected_users[]" value="'.$userid.'">';
+	}
+?>
+
+</table>
+</form>
+
+<?
+	echofooter();
+}
+
+if ($action == 'do_mass_delete_users'){
+	if (!$selected_users){
+		msg('error', $echo['error'], $echo['usersNotChoicen'], $PHP_SELF.'?mod=editusers');
+	}
+
+	$deleted_users = 0;
+
+	foreach ($selected_users as $user){
+		$sql->delete(array(
+		'table' => 'users',
+		'where' => array("id = $user"),
+		));
+
+		$deleted_users++;
+	}
+
+	if (count($selected_users) == $deleted_users){
+		msg('info', $echo['headerDeleteUsers'], $echo['deletedUsersComplete'], $PHP_SELF.'?mod=editusers');
+	} else {
+		msg('error', $echo['headerDeleteUsers'], $deleted_users.' '.$echo['deletedUsersWithError'], $PHP_SELF.'?mod=editusers');
+	}
+}
+?>

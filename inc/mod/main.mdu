@@ -1,0 +1,218 @@
+<?php
+if ($member['level'] == 4 and $action == 'dologin'){
+	header('Location: '.$config_http_script_dir.'/'.$PHP_SELF.'?mod=personal');
+	exit;
+}
+
+$echo = cute_lang('main');
+
+echoheader('home', $echo['header']);
+
+// Some Stats
+$todaynews		= 0;
+$count_my_news	= 0;
+$count_new_news = 0;
+$stats_news		= $sql->table_count('news');
+$stats_users	= $sql->table_count('users');
+$count_comments = $sql->table_count('comments');
+
+foreach ($sql->select(array('table' => 'news', 'select' => array('date', 'author'))) as $row){
+	$itemdate = date('d/m/y', $row['date']);
+
+	if ($itemdate == date('d/m/y')){
+		$todaynews++;
+
+		if ($row['author'] == $member['username']){
+			$count_my_news++;
+		}
+
+		if (($row['date'] > $member['last_visit']) and $member['last_visit']){
+			$count_new_news++;
+		}
+	}
+}
+
+// Define Welcome Message
+?>
+
+<table border="0" cellpading="0" cellspacing="0" width="654">
+ <tr>
+  <td width="650" colspan="5" height="1">&nbsp;
+
+<?
+//----------------------------------
+// Do we have enough free space ?
+//----------------------------------
+$dfs = @disk_free_space('./');
+
+if ($dfs and $dfs < 10240){
+	$freespace = formatsize($dfs);
+?>
+
+<tr>
+ <td style="padding:3px; border:1px dashed red; background-color: #ffb9b9;" colspan="5" height="1"><?=sprintf($echo['freeSpace'], $freespace); ?>
+<tr>
+ <td>&nbsp;
+
+<?
+}
+
+//----------------------------------
+// Install script still exists ?
+//----------------------------------
+if (file_exists('./install/install.php')){
+?>
+
+<tr>
+ <td class="panel" colspan="5" height="1"><?=$echo['install']; ?>
+ <tr>
+  <td>&nbsp;
+
+<?
+}
+
+//----------------------------------
+// Are we using SafeSkin ?
+//----------------------------------
+if ($using_safe_skin){
+?>
+
+<tr>
+ <td class="panel" colspan="5" height="1"><?=sprintf($echo['template'], $config_skin); ?>
+<tr>
+ <td>&nbsp;
+
+<?
+}
+
+//----------------------------------
+// Is our PHP version old ?
+//----------------------------------
+if ($phpversion and $phpversion < '4.1.0'){
+?>
+
+<tr>
+ <td class="panel" colspan="5" height="1"><?=sprintf($echo['phpversion'], $phpversion); ?>
+<tr>
+ <td>&nbsp;
+
+<?
+}
+
+// Show Some stats
+if ($member['level'] == 1){
+	$image_upload		 = end(explode('/', $config_path_image_upload));
+	$userpic_upload		 = end(explode('/', $config_path_userpic_upload));
+	$user_images_folder	 = cute_parse_url($config_path_image_upload);
+	$user_images_folder	 = $user_images_folder['abs'];
+	$user_userpic_folder = cute_parse_url($config_path_userpic_upload);
+	$user_userpic_folder = $user_userpic_folder['abs'];
+
+	$test = array(
+			'./cache' => 'cache',
+			$user_images_folder => $image_upload,
+			$user_userpic_folder => $userpic_upload,
+			);
+
+	$stat = array(
+			'users'		 => array('title' => $echo['totalUsers']),
+			'news'		 => array('select' => 'id', 'title' => $echo['totalNews']),
+			'comments'	 => array('title' => $echo['totalComments']),
+			'categories' => array('select' => 'id', 'title' => $echo['totalCategories']),
+			);
+
+	// Check the table size
+	if ($config_database != 'txtsql'){
+		$query = mysql_query('show table status');
+		$i = 0;
+		$tables = array('users', 'news', 'comments', 'categories', 'story');
+		while ($row = mysql_fetch_array($query)){
+			foreach($tables as $table){
+				if($row['Name'] == $config_dbprefix.$table){
+					$output[$i] = $row['Data_length'];
+					if($row['Data_free'] > 0){
+						$results = mysql_query('optimize table '.$row['Name']);
+					}
+					$i++;
+				}
+			}
+		}
+
+		$size = array(
+				'users'		 => $output[4],
+				'news'		 => $output[2] + $output[3],
+				'comments'	 => $output[1],
+				'categories' => $output[0]
+				);
+	}
+?>
+
+<tr>
+ <td>
+  <table width="600" border="0" cellspacing="0" cellpadding="0">
+   <tr>
+	<td class="panel" width="220">&nbsp;<b><?=$echo['statistics']; ?></b>
+	<td width="60">&nbsp;
+	<td class="panel" width="220">&nbsp;<b><?=$echo['sysCheck']; ?></b>
+   <tr>
+	<td>
+	 <table width="100%" border="0" cellspacing="0" cellpadding="0">
+
+<?
+	foreach ($stat as $k => $v){
+?>
+
+<tr>
+ <td><?=$echo['total']; ?> <?=$v['title']; ?>
+ <td><?=count($sql->select(array('table' => $k, 'select' => array(($v['select'] ? $v['select'] : 'date'))))); ?> (<small><?=(!$size ? ($k == "news" ? formatsize(filesize(rootpath.'/data/db/base/news.MYD') + filesize(rootpath.'/data/db/base/story.MYD')) : formatsize(filesize(rootpath.'/data/db/base/'.$k.'.MYD'))) : formatsize($size[$k])); ?></small>)
+
+<?
+	}
+?>
+
+</table>
+<td>&nbsp;
+<td>
+ <table width="100%" border="0" cellspacing="0" cellpadding="0">
+
+<?
+	foreach ($test as $k => $v){
+?>
+
+<tr>
+ <td><?=$echo['folderWritable']; ?> <?=$v; ?>
+ <td><font color="<?=(is_writable($k) ? 'green' : 'red'); ?>"><?=(is_writable($k) ? $echo['sayYes'] : $echo['sayNo']); ?></font>
+
+<?
+	}
+?>
+
+</table>
+ <tr>
+  <td colspan="3" align="center"><br /><br />
+
+<?
+	if ($action == 'chek'){
+?>
+
+<?=sprintf($echo['versionCheck'], $config_version_id, $config_version_id); ?>
+
+<?
+	} else {
+?>
+<?=sprintf($echo['backup'], $config_http_script_dir); ?><br />
+<a href="<?=$PHP_SELF; ?>?action=chek"><?=$echo['newVersionCheck']; ?></a>
+
+<?
+	}
+?>
+
+</table>
+
+<?
+}
+?>
+
+</table>
+
+<? echofooter(); ?>

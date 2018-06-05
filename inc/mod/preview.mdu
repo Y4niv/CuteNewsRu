@@ -1,0 +1,96 @@
+<?php
+if (!$template or strtolower($template) == 'default'){
+	include rootpath.'/data/tpl/Default.tpl';
+} else {
+	include rootpath.'/data/tpl/'.$template.'.tpl';
+}
+
+if (($_POST['date'] = strtotime($_POST['day'].' '.$_POST['month'].' '.$_POST['year'].' '.$_POST['hour'].':'.$_POST['minute'].':'.$_POST['second'])) == -1){
+	$_POST['date'] = time() + $config_date_adjust * 60;
+}
+
+$query[0] = $_POST;
+foreach ($query as $row){
+	$output = $template_full;
+	$output = run_filters('news-show-generic', $output);
+
+	$row['full_story'] = explode('<!--nextpage-->', ($row['full_story'] ? $row['full_story'] : $row['short_story']));
+	$page_count		   = sizeof($story['full_story']);
+	$row['full_story'] = $row['full_story'][($page ? $page - 1 : 0)];
+
+	if ($page_count > 1){
+		$output = str_replace('[page-link]', '', $output);
+		$output = str_replace('[/page-link]', '', $output);
+
+		for ($i = 1; $i < $page_count + 1; $i++){
+			if (($page and $page == $i) or ($allow_full_story and !$page and $i == 1)){
+				$pages .= ' <b>'.$i.'</b> ';
+			} else {
+				$pages .= ' [link='.(rufus ? '?' : '&amp;').'page='.$i.']'.$i.'[/link] ';
+			}
+		}
+	}
+
+	if ($cat_arr = explode(',', $row['category'])){
+		$cat = '';
+
+		foreach ($cat_arr as $v){
+			$cat['id'][]   = $v;
+			$cat['name'][] = ($cat_name[$v] ? '<a href="'.cute_get_link(array('id' => $v, 'url' => $cat_url[$v]), 'category').'">'.$cat_name[$v].'</a>' : '');
+			$cat['icon'][] = ($cat_icon[$v] ? '<a href="'.cute_get_link(array('id' => $v, 'url' => $cat_url[$v]), 'category').'"><img src="'.$cat_icon[$v].'" alt="" border="0" align="absmiddle"></a>' : '');
+		}
+	}
+
+	if (!$row['full_story']){
+		$output = preg_replace('/\[full-link(.*?)\](.*?)\[\/full-link(.*?)\]/i', '', $output);
+	}
+
+	if (!$cat['name'][0]){
+		$output = preg_replace('/\[catheader\](.*?)\[\/catheader\]/i', '', $output);
+	}
+
+	$output = str_replace('{id}', $row['id'], $output);
+	$output = str_replace('{title}', run_filters('news-entry-content', $row['title']), $output);
+	$output = str_replace('{date}', langdate($config_timestamp_active, $row['date']), $output);
+	$output = str_replace('{author}', $my_names[$row['author']], $output);
+	$output = str_replace('{avatar}', ($row['avatar'] ? '<img src="'.$row['avatar'].'" alt="" border="0" align="absmiddle">' : ''), $output);
+	$output = str_replace('[catheader]', '', $output);
+	$output = str_replace('[/catheader]', '', $output);
+	$output = str_replace('{category}', join(', ', $cat['name']), $output);
+	$output = str_replace('{category-icon}', join(', ', $cat['icon']), $output);
+	$output = str_replace('{category-id}', join(', ', $cat['id']), $output);
+	$output = str_replace('{short-story}', run_filters('news-entry-content', str_replace("\n", "<br />", $row['short_story'])), $output);
+	$output = str_replace('{short-story-length}', strlen($row['short_story']), $output);
+	$output = str_replace('{full-story}', run_filters('news-entry-content', str_replace("\n", "<br />", $row['full_story'])), $output);
+	$output = str_replace('{full-story-length}', strlen($row['full_story']), $output);
+	$output = str_replace('{avatar-url}', $row['avatar'], $output);
+	$output = str_replace('{pages}', $pages, $output);
+	$output = str_replace('{php-self}', $PHP_SELF, $output);
+	$output = str_replace('{cutepath}', $config_http_script_dir, $output);
+	$output = str_replace('{imagepath}', $config_path_image_upload, $output);
+	$output = str_replace('{alternating}', $alternating, $output);
+	$output = run_filters('news-entry', $output);
+	$output = preg_replace('/{link=(.*?)\/(.*?)}/ie', "cute_get_link('$row', '\\2', '\\1', 'true')", $output);
+	$output = preg_replace('/{date=(.*?)}/ie', "date('\\1', $row[date])", $output);
+	$output = preg_replace('/\[page-link\](.*?)\[\/page-link\]/i', '', $output);
+	$output = preg_replace('/\[(full-)?link(=(.*?))?\]/i', '<a href="'.cute_get_link($row).'\\3">', $output);
+	$output = preg_replace('/\[\/(full-)?link\]/i', '</a>', $output);
+	$output = replace_news('show', $output);
+
+	$output = run_filters('news-entry-dynamic', $output);
+	$output = str_replace('{views}', $row['views'], $output);
+	$output = str_replace('{comments}', $row['comments'], $output);
+
+	if ($is_logged_in and ($member['level'] < 3 or $member['username'] == $row['author'])){
+		$output = str_replace('[if-logged]', '', $output);
+		$output = str_replace('[/if-logged]', '', $output);
+		$output = preg_replace('/\[not-logged\](.*?)\[\/not-logged\]/i', '', $output);
+	} else {
+		$output = str_replace('[not-logged]', '', $output);
+		$output = str_replace('[/not-logged]', '', $output);
+		$output = preg_replace('/\[if-logged\](.*?)\[\/if-logged\]/i', '', $output);
+	}
+
+	echo $output;
+}
+?>

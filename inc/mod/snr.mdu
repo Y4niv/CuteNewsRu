@@ -1,0 +1,199 @@
+<?php
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Main Screen of SNR
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if (!$action){
+	echoheader('search', $echo['header']);
+?>
+
+<script language="JavaScript" type="text/javascript">
+<!--
+onload=startup;function startup(){
+	ckeck_uncheck_tree("news");
+	ckeck_uncheck_tree("comments");
+}
+
+function ckeck_uncheck_tree(tree) {
+	var myform = document.snr;
+	if(tree == "news"){
+		if(myform.snr_search_in_news.checked == false){
+			myform.snr_include_title.disabled = true;
+			myform.snr_include_short.disabled = true;
+			myform.snr_include_full.disabled = true;
+			myform.snr_include_avatar.disabled = true;
+		}else{
+			myform.snr_include_title.disabled = false;
+			myform.snr_include_short.disabled = false;
+			myform.snr_include_full.disabled = false;
+			myform.snr_include_avatar.disabled = false;
+		}
+	}
+	if(tree == "comments"){
+		if(myform.snr_search_in_comments.checked == false){
+			myform.snr_include_name.disabled = true;
+			myform.snr_include_comment.disabled = true;
+		}else{
+			myform.snr_include_name.disabled = false;
+			myform.snr_include_comment.disabled = false;
+		}
+	}
+
+}
+
+function ckeck_uncheck_all() {
+	var frm = document.snr;
+	for (var i=0;i<frm.elements.length;i++) {
+		var elmnt = frm.elements[i];
+		if (elmnt.name=="snr_sources[]") {
+			if(frm.master_box.checked != true){ elmnt.checked=false; }
+			else{ elmnt.checked=true; }
+		}
+	}
+}
+
+-->
+</script>
+
+<form method="posT" name=snr action="<?=$PHP_SELF; ?>?mod=snr">
+<table border="0" cellpading="0" cellspacing="0" width="654">
+ <tr>
+  <td width="650">
+   <table class="panel" cellspacing="3" cellpadding="0" width="330">
+	<tr>
+	 <td valign="top" width="318" colspan="2">
+	  <input type="checkbox" onclick="javascript:ckeck_uncheck_tree('news')" style="border:0; background-color:transparent" name="snr_search_in_news" value="1" checked id="snr_search_in_news">
+	  <label for="snr_search_in_news"><?=$echo['inNews']; ?></label>
+	<tr>
+	 <td valign="top" width="20">
+	 <td valign="top" width="296">
+	  <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_title" value="1" checked id="snr_include_title">
+	  <label for="snr_include_title"><?=$echo['includeTitles']; ?></label>
+	<tr>
+	 <td valign="top" width="20">
+	 <td valign="top" width="296">
+	  <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_short" value="1" checked id="snr_include_short">
+	  <label for="snr_include_short"><?=$echo['includeShort']; ?></label>
+	<tr>
+	 <td valign="top" width="20">
+	 <td valign="top" width="296">
+	  <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_full" value="1" checked id="snr_include_full">
+	  <label for="snr_include_full"><?=$echo['includeFull']; ?></label>
+	<tr>
+	 <td valign="top" width="20">
+	 <td valign="top" width="296">
+	  <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_avatar" value="1" id="snr_include_avatar">
+	  <label for="snr_include_avatar"><?=$echo['includeAvatar']; ?></label>
+	<tr>
+	 <td valign="top" width="318" colspan="2">
+	  <input type="checkbox" style="border:0; background-color:transparent" onclick="javascript:ckeck_uncheck_tree('comments')" name="snr_search_in_comments" value="1" id="snr_search_in_comments">
+	  <label for="snr_search_in_comments"><?=$echo['inComments']; ?></label>
+	<tr>
+	 <td valign="top" width="20">
+	 <td valign="top" width="296">
+	  <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_name" value="1" checked id="snr_include_name">
+	  <label for="snr_include_name"><?=$echo['includeName']; ?></label>
+	<tr>
+	 <td valign="top" width="20">
+	 <td valign="top" width="296">
+	  <input type="checkbox" style="border:0; background-color:transparent"	 name="snr_include_comment" value="1" checked id="snr_include_comment">
+	  <label for="snr_include_comment"><?=$echo['includeComment']; ?></label>
+   </table>
+ <tr>
+  <td width="650">
+ <tr>
+  <td width="637">
+   <table class="panel" cellspacing="0" cellpadding="10" width="651">
+	<tr>
+	 <td width="643">&nbsp;&nbsp;<?=$echo['searchText']; ?><br />&nbsp;<textarea rows="5" cols="95" name="snr_search_text"></textarea>
+	<tr>
+	 <td width="643">&nbsp;&nbsp;<?=$echo['replaceText']; ?><br />&nbsp;<textarea rows="5" cols="95" name="snr_replace_text"></textarea>
+   </table>
+ <tr>
+  <td width="637">
+   <table cellspacing="0" cellpadding="5" width="651">
+	<tr>
+	 <td width="411"><p align="right"><?=sprintf($echo['message'], $config_http_script_dir); ?></p>
+	 <td width="218"><p align="right"><input type="submit" value="<?=$echo['replace']; ?>">
+   </table>
+   <input type="hidden" name="action" value="doreplace">
+</table>
+</form>
+
+<?
+	echofooter();
+} elseif($action == 'doreplace'){
+	if (!$snr_search_in_news and !$snr_search_in_comments){
+		msg('error', $echo['error'], $echo['sectionNotChoice']);
+	} elseif(!$snr_search_text or !$snr_search_text){
+		msg('error', $echo['error'], $echo['empty']);
+	}
+
+	//----------------------------------
+	// Search in the News
+	//----------------------------------
+	if ($snr_search_in_news){
+		foreach ($sql->select(array('table' => 'news', 'join' => array('table' => 'story', 'where' => 'id = post_id'))) as $row){
+			if ($snr_include_title){
+				$row['title'] = str_replace($snr_search_text, $snr_replace_text, $row['title']);
+			}
+
+			if ($snr_include_short){
+				$row['short'] = str_replace($snr_search_text, $snr_replace_text, $row['short']);
+			}
+
+			if ($snr_include_full){
+				$row['full'] = str_replace($snr_search_text, $snr_replace_text, $row['full']);
+			}
+
+			if ($snr_include_avatar){
+				$row['avatar'] = str_replace($snr_search_text, $snr_replace_text, $row['avatar']);
+			}
+
+			$sql->update(array(
+			'table'	 => 'news',
+			'where'	 => array("id = $row[id]"),
+			'values' => array(
+						'title'	 => $row['title'],
+						'short'	 => strlen($row['short']),
+						'full'	 => strlen($row['full']),
+						'avatar' => $row['avatar']
+						)
+			));
+			$sql->update(array(
+			'table'	 => 'story',
+			'where'	 => array("post_id = $row[id]"),
+			'values' => array(
+						'short' => $row['short'],
+						'full'	=> $row['full']
+						)
+			));
+		}
+	}
+
+	//----------------------------------
+	// Search in the Comments
+	//----------------------------------
+	if ($snr_search_in_comments){
+		foreach($sql->select(array('table' => 'news')) as $row){
+			if ($snr_include_name){
+				$row['author'] = str_replace($snr_search_text, $snr_replace_text, $row['author']);
+			}
+
+			if ($snr_include_comment){
+				$row['comment'] = str_replace($snr_search_text, $snr_replace_text, $row['comment']);
+			}
+
+			$sql->update(array(
+			'table'	 => 'comments',
+			'where'	 => array("date = $row[date]"),
+			'values' => array(
+						'author'  => $row['author'],
+						'comment' => $row['comment'],
+						)
+			));
+		}
+	}
+
+	msg('info', $echo['headerReplaced'], $echo['replacedComplete'], $PHP_SELF.'?mod=snr');
+}
+?>

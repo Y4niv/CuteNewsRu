@@ -1,0 +1,30 @@
+<? echoheader('question', 'Помощь'); ?>
+
+<table border="0" cellpading="0" cellspacing="0" width="654">
+ <tr>
+  <td width="650" valign="middle" colspan="3"><h1>Помощь и поддержка</h1>
+ <tr>
+  <td width="31" valign="middle" height="70">&nbsp;
+  <td width="619" valign="middle" colspan="2" align="justify">Если у вас возникнут какие-либо вопросы по CuteNews, заходите на <b><a href="http://cutenews.ru/forum/" target="_blank">официальный форум</a></b>.<br />
+   Но перед тем, как публиковать свой вопрос на форуме, ознакомьтесь с <b><a href="<?=$PHP_SELF; ?>?mod=help">документацией по CuteNews</a></b>, входящей в систему.
+ <tr>
+  <td>&nbsp;
+ <tr>
+  <td width="650" valign="middle" height="1" colspan="3"><h1>Автопроверка</h1>
+ <tr>
+  <td width="31" valign="middle" height="70">&nbsp;
+  <td width="619" valign="middle" colspan="2" align="justify">
+   Здесь происходит автоматическая проверка новых версий скрипта. Последняя версия, как всегда, доступна на русском сайте <a href="http://cutenews.ru/" target="_blank">CuteNews</a>.
+   <table border="0" cellpading="0" cellspacing="0" width="400">
+    <tr>
+     <td width="300"><b>Используемая версия:</b>
+     <td><?=$config_version_name; ?> <?=$config_version_id; ?>
+    <tr>
+     <td valign="top"><b>Последняя доступная версия:</b>
+     <td width="250"><script language="JavaScript" src="http://cutenews.ru/check.php?version=<?=$config_version_id; ?>"></script>
+   </table>
+ <tr>
+  <td>&nbsp;
+</table>
+
+<? echofooter(); ?>

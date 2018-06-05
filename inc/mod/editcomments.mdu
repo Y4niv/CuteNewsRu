@@ -1,0 +1,191 @@
+<?php
+$right = false;
+$disabled = '';
+
+if ($sql->select(array('table' => 'news', 'where' => array("author = $member[username]", 'and', "id = $newsid")))){
+	$right = true;
+}
+
+if ($sql->select(array('table' => 'comments', 'where' => array("author = $member[username]", 'and', "id = $comid"))) and $config_allow_edit_comments == 'yes'){
+	$right = true;
+	$disabled = ' disabled';
+}
+
+if ($member['level'] < 3){
+	$right = true;
+	$disabled = '';
+}
+
+if (!$right){
+	die('Õóé');
+}
+
+// ********************************************************************************
+// Edit Comment
+// ********************************************************************************
+if (!$action or $action == 'editcomment'){
+	foreach ($sql->select(array('table' => 'comments', 'where' => array("id = $comid"))) as $row){
+?>
+
+<script type="text/javascript" src="skins/cute.js"></script>
+
+<style>
+<!--
+body {
+	font-family: verdana, arial, helvetica, sans-serif;
+	font-size: 8pt;
+}
+textarea {
+	width: 100%;
+	height: 100px;
+	overflow-x: hidden;
+	overflow-y: visible;
+	padding: 5px;
+}
+
+legend {
+	color: #000;
+	width: 100%;
+	font-size: 12px;
+	font-weight: bold;
+	border-bottom: solid 1px #ccc;
+	padding-bottom: 5px;
+	padding-left: 5px;
+	margin-bottom: 5px;
+}
+
+fieldset {
+	border: none 1px #ccc;
+	padding-bottom: 10px;
+	padding-left: 7px;
+	padding-right: 7px;
+}
+#tooltip {
+	background: #fff;
+	border: 1px solid #000;
+	color: #000;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	margin: 0px;
+	padding: 2px 2px;
+	position: absolute;
+	visibility: hidden;
+}
+-->
+</style>
+
+<form method="post" name="addnews" action="<?=$PHP_SELF; ?>" onsubmit="return process_form(this)">
+
+<fieldset><legend><?=$echo['comment']; ?></legend>
+<input type="text" name="date" value="<?=langdate('d M Y H:i', $row['date']); ?>"<?=$disabled; ?>><br />
+<input type="text" name="poster" value="<?=$row['author']; ?>"><br />
+<input type="text" name="mail" value="<?=$row['mail']; ?>"><br />
+<input type="text" name="ip" value="<?=$row['ip']; ?>" disabled>&nbsp;<a href="http://www.ripe.net/perl/whois?searchtext=<?=$row['ip']; ?>" target="_blank" title="<?=$echo['getInfoAboutIP']; ?>">[?]</a><br />
+<?=insertSmilies('comment', 0); ?><br />
+<textarea name="comment"><?=replace_comment('admin', $row['comment']); ?></textarea>
+</fieldset>
+
+<fieldset><legend><?=$echo['reply']; ?></legend>
+<?
+
+		if (preg_match("/^[\.A-z0-9_\-]+[@][A-z0-9_\-]+([.][A-z0-9_\-]+)+[A-z]{1,4}$/", $row['mail']) and !$disabled){
+?>
+
+<label for="reply_to_mail"><input id="reply_to_mail" name="reply_to_mail" type="checkbox" value="on" checked>&nbsp;<?=$echo['sendReply']; ?></label><br />
+
+<?
+		}
+?>
+
+<?=insertSmilies('reply', 0); ?><br />
+<textarea name="reply"<?=$disabled; ?>><?=replace_comment('admin', $row['reply']); ?></textarea>
+</fieldset>
+
+<fieldset><legend><?=$echo['actions']?></legend>
+<input type="submit" value="<?=$echo['save']; ?>" accesskey="s">&nbsp;
+<input type="button" onclick="javascript:confirmDelete('?mod=editcomments&amp;action=dodeletecomment&amp;newsid=<?=$newsid; ?>&amp;delcomid[]=<?=$comid; ?>&amp;deletecomment=yes')" value="<?=$echo['remove']; ?>" accesskey="d">
+<input type="button" value="<?=$echo['cancel']; ?>" onClick="window.close();" accesskey="c">
+</fieldset>
+
+<input type="hidden" name="mod" value="editcomments">
+<input type="hidden" name="newsid" value="<?=$newsid; ?>">
+<input type="hidden" name="comid" value="<?=$comid; ?>">
+<input type="hidden" name="action" value="doeditcomment">
+</form>
+
+<?
+	}
+}
+
+// ********************************************************************************
+// Do Delete Comment
+// ********************************************************************************
+if ($action == 'dodeletecomment' and $deletecomment == 'yes'){
+	if ($delcomid == 'all'){
+		$sql->delete(array(
+		'table' => 'comments',
+		'where' => array("post_id = $newsid")
+		));
+
+		msg('info', $echo['headerDeleted'], $echo['commentsDeletedComplete'], $PHP_SELF.'?mod=editnews&amp;id='.$newsid);
+	} else {
+		foreach ($delcomid as $aloncomment){
+			$sql->delete(array(
+			'table' => 'comments',
+			'where' => array("id = $aloncomment")
+			));
+		}
+
+		$sql->update(array(
+		'table'	 => 'news',
+		'where'	 => array("id = $newsid"),
+		'values' => array('comments' => count($sql->select(array('table' => 'comments', 'where' => array("post_id = $newsid")))))
+		));
+
+		msg('info', $echo['headerDeleted'], $echo['commentDeletedComplete'], $PHP_SELF.'?mod=editnews&amp;id='.$newsid);
+	}
+}
+
+// ********************************************************************************
+// Do Save Comment
+// ********************************************************************************
+if ($action == 'doeditcomment'){
+	$sql->update(array(
+	'table'	 => 'comments',
+	'where'	 => array("id = $comid"),
+	'values' => array(
+				'author'  => $poster,
+				'mail'	  => $mail,
+				'comment' => replace_comment('add', $comment),
+				'reply'	  => replace_comment('add', $reply)
+				)
+	));
+?>
+
+<br /><br /><br /><br /><center><b><?=$echo['saved']; ?>
+
+<?
+	if ($reply_to_mail == 'on'){
+		$comment  = str_replace('<br />', "\n", $comment);
+		$comment  = str_replace("\n", "\n$poster> ", $comment);
+		$reply	 = str_replace('<br />', "\n", $reply);
+
+		foreach ($sql->select(array('table' => 'news', 'where' => array("id = $newsid"))) as $row){
+			$PHP_SELF = $config_http_home_url;
+			$post_url = cute_get_link($row);
+		}
+
+		cute_mail("$poster <$mail>", "Reply to your comment in «$title»", "Hello, $poster!\n\n Thank you for leaving a comment on $config_home_title ( $config_http_home_url ).\n\nYour comment:\n$poster> $comment\n\nReply: \n$reply\n\n--\nYou can read all comments by going to this address: $post_url\n\n\nThank you for your comment.");
+?>
+
+<br /><br /><?=$echo['replySend']; ?>
+
+<?
+	}
+?>
+
+<br /><br /><a href="#" onClick="window.close();"><?=$echo['closeWindow']; ?></a>
+
+<?
+}
+?>
