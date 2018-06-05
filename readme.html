@@ -1,0 +1,375 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>CuteNews.RU readme</title>
+<meta content="text/html; charset=iso-8859-2" http-equiv=Content-Type>
+<link href="skins/default.css" rel="stylesheet" type="text/css" media="screen" />
+<style type="text/css">
+<!--
+p {
+		text-align: justify;
+}
+-->
+</style>
+<body bgcolor="#FFFFFF">
+<table width="90%" border="0" align="center" cellpadding="0" cellspacing="0">
+  <tr>
+	<td class="header"><img src="skins/images/default/help.gif" align="absmiddle">CuteNews.RU readme<br>
+	  <br>
+	</td>
+  </tr>
+</table>
+<table width="90%" border="0" align="center" cellpadding="0" cellspacing="0">
+
+ <tr>
+
+  <td>
+
+	 <ul>
+	<li><a href="#info">Script information </a></li>
+	<li><a href="#sysreq">System requirments</a></li>
+	<li><a href="#install">Installing CuteNews.RU </a></li>
+	<li><a href="#02x">Upgrade from 02x, CuteNews and AJ-Fork</a></li>
+	<li><a href="#upgrade">Upgrade</a></li>
+	<li><a href="#tomysql">Upgrade from txtSQL (text version) to MySQL</a></li>
+	<li><a href="#backup">BackUp</a></li>
+	<li><a href="#variables">Variables</a></li>
+	<li><a href="#include">Showing the news</a></li>
+	<li><a href="#example">Examples</a></li>
+	<li><a href="#cache">Optimization</a></li>
+	<li><a href="#rufus">rUFUs / Humanlike links</a></li>
+	<li><a href="#plugins">PlugIns</a></li>
+	<li><a href="#functions">Functions</a></li>
+   </ul>
+
+   <h1><a name="info"></a>Informations about the script </h1>
+<p>CuteNews.RU - is a powerfull and simple news script that allows you to publish your news and any content that you wish. The script is built on the core of CuteNews by the <a href="http://cutephp.com">CutePHP
+		Team</a>, and it borrows ideas from <a href="http://ajfork.berlios.de">AJ-Fork</a>, another system that is based on CuteNews. Cutenews.RU uses either textfiles (txtSQL) or MySQL to store its data. The system requirements are minimal but the possibilities to use the script are vast.
+		You can use CuteNews.Ru to publish your private home page, start blogging, use it as a content management system or anything that is on your mind.</p>
+   <p>More information about how to use this script can be found on the <a href="http://cutenews.ru">official website</a> of CuteNews.RU ( only available in Russian )!<br>
+		Before you start using the script you should read the <a href="license.txt">license agreement</a> which is included in the zip file. By installing the script you accept this license .<br>
+		If you need help or support you can go to the <a href="http://cutenews.ru/forum">Russian speaking forum</a>
+		or the <a href="http://english.cutenews.ru/forum">English speaking forum</a>.</p>
+   <p>You can support this project by linking to the official site ( CuteNews.ru ), or by donating on the WebMoney account: $ - Z584423619010,  - E489862997841, R - R435030808543 </p>
+
+
+   <h1><a name="sysreq"></a>System requirements</h1>
+   <ul>
+	<li> Minimal installation:</li>
+								<ul>
+	 <li> You will need <a href="http://php.net">PHP</a> version 4.1.0 or higher.</li>
+	</ul>
+								<li> Advanced installation:</li>
+								<ul>
+	 <li> For the thumbnail creation you need <a href="http://www.boutell.com/gd/">GD2</a>.</li>
+	 <li> For search engine friendly urls (rufus = &quot;yes&quot;) you need mod_rewrite and .htaccess files.</li>
+	 <li> To store the data in a MySQL database instead of a flatfile database (txtSQL), you need a <a href="http://mysql.com">MySQL</a> database.</li>
+	</ul>
+								</ul>
+
+   <p>As you can see all you need to run CuteNews.RU is PHP.</p>
+   <p>Take it, use it, love it :).</p>
+   <h1><a name="install"></a>Installation of CuteNews.RU </h1>
+   <p><strong>Attention!</strong> <em>path/to</em> is the path to your
+		CuteNews.RU installation</p>
+   <p>Installing CuteNews.RU is very simple. Just proceed with the following instructions:</p>
+   <ol>
+
+	<li>Download the latest version of CuteNews.RU</li>
+	<li>Unzip the zip-file</li>
+	<li>Upload all the files and folders to your server</li>
+	<li>Set the permissions of the files with the help of a FTP client</li>
+	<ul>
+
+	 <li>CHMOD 777 the folders cache/ and example/ and data/ and <em>all</em> files and folders in the
+			data/ folder</li>
+	 <li>CHMOD 644 the index.php</li>
+	</ul>
+	<li>Open your browser and go to http://yoursite.com/path/to/index.php and follow the instructions</li>
+	<li>Don't forget to delete the install folder after completion of the installation
+		</li>
+   </ol>
+   <h1><a name="02x"></a>Upgrade from 02x, CuteNews and AJ-Fork</h1>
+	<p>Upgrade for 024, 025, 026, 027, 028, 029, original CuteNews and AJ-Fork. If you're using AJ-Fork v.168, you need to go to tools/anticonvert.php (inside your AJ-Fork installation) and then use our upgrade.</p>
+	<ol>
+
+	 <li>Install the script</li>
+	 <li>Put your old folder /data to path/to/convert/02x</li>
+	 <li>CHMOD all tmp-files to 777</li>
+	 <li>Open your browser and go to http://yoursite.com/path/to/convert/</li>
+	 <li>Choose &quot;02x series to 03x series&quot;</li>
+	 <li>Choose what you want to transfer to the new script</li>
+	</ol>
+	
+	<h1><a name="upgrade"></a>Upgrade</h1>
+	<ol>
+	 <li>Unzip the zip-file to a temporary directory</li>
+	 <li>Delete the data folder and the install folder from this temporary directory</li>
+	 <li>Upload this temporary directory to your server</li>
+	 <li>Go to the admin panel and login as admin - the script will automatically be updated</li>
+	</ol>
+	<h1><a name="tomysql"></a>Update from txtSQL (text version) to MySQL</h1>
+	<ol>
+	 <li>Open your browser and go to http://yoursite.com/path/to/convert/</li>
+	 <li>Choose &quot;txtSQL to MySQL&quot;</li>
+	 <li>Follow the instructions</li>
+	</ol>
+	
+	<h1><a name="backup"></a>BackUp</h1>
+	<p>You can make a backup of your MySQL database and/or your data folder. Open your browser and go to http://yoursite.com/path/to/backup and choose what to backup.</p>
+	<p>We recommend to do a backup at least once a month.</p>
+	
+   <a name="variables"></a><h1>Variables</h1>
+   <p>There are several important variables that you should know of. </p>
+   <p class="code"><strong>$static['variable'] = VALUE;</strong> // tells the script that you dont want to show entire news.
+This is very, very useful for several cases ( eg. Guestbook ). </p>
+   <p class="code"> $<strong>template = 'TEMPLATE';</strong>  tells the script which template you want to use.
+For example if you write: $template = "Headlines" all news in that php include will be displayed as headlines. If you want to use template Default, then you dont have to declare this variable because it is used by default. </p>
+   <p class="code"> <strong>$category = 'ID CATEGORIES;'</strong> // tells the script that you want to show news from different categories. You can show several categories, just write: $category = '1,4,7'. This will show only news from category 1, 4 and 7. You can go to Control panel to create, delete and edit your categories. </p>
+   <p class="code"> <strong>$number = NUMBER;</strong> // tells the script the number of news to be displayed on one page. For example: $number = 7; will show 7 news per page.</p>
+   <p class="code"> <strong>$year</strong>, <strong>$month</strong>, <strong>$day</strong>,
+		<strong>$user</strong> (or <strong>$author</strong>) are similar to $category. Those variables serve for sorting news. For example if you write: $month=&quot;12&quot;; $user=&quot;odin&quot;, you will see news only from december and only posted by user &quot;odin&quot; . Of course, everything can be used &quot;together&quot;.</p>
+   <p class="code"> <strong>$skip = SKIP;</strong> // use this variable only when using $number. $skip tells the script how many news you want to leave out. For example: $skip = 4; shows your news starting with the fourth news.</p>
+   <p class="code"><strong>$user_query = URL;</strong> // adds a query to the URL. You find an example of using it in search.php .</p>
+   <p class="code"><strong>$ucat</strong> // It's analog to $category but only works with full news. See the example below to understand its use</p>
+   <p class="code"> <strong>$sort = array('field', 'order');</strong> // tells the script to sort the news by
+		&quot;field&quot; in &quot;order&quot;.</p>
+	<p class="code"><strong>$PHP_SELF = file;</strong> // if rUFUs is turned off you can tell the script where to open the news</p>
+   <p> Variables you can use when using $sort:<br>
+		<strong>date</strong> - date of news<br>
+		<strong>author</strong> - author of news<br>
+		<strong>title</strong> - title<br>
+		<strong>short</strong> - the number of signs in the short story<br>
+		<strong>full</strong> - the number of signs in the full story<br>
+		<strong>category</strong> - category (use id1, id2 and so on )<br>
+		<strong>url</strong> - the transliterated title or the value of the field
+		&quot;URL&quot; in addnews/editnews<br>
+		<strong> id</strong> - the identification number of news <br>
+		<strong>views</strong> - number of views<br>
+		<strong>comments</strong> number of comments</p>
+   <p>Two possibilities to sort:<br>
+		<strong>ASC</strong> - Ascending<br>
+		<strong>DESC</strong> - Descending</p>
+   <p>For example, if you declare $sort = array('comments', 'DESC') - you will see news sorted from least to largest amount of comments.</p>
+   <a name="include"></a><h1>Show news</h1>
+   <p>It's very easy to show the news on your page. Simply put this code to the file which will show the news:</p>
+   <p class="code">include 'path/to/head.php';</p>
+   <p><strong>Attention.</strong> <em>path/to/</em> is the path to your CuteNews.RU directory.</p>
+   <p>And where you want to show the news you must add this code:</p>
+   <p class="code">include $cutepath.'/show_news.php';</p>
+   <p>You have to include all the variable mentioned above <em>before</em> you include the
+		show_news.php:</p>
+   <p class="code">$number = 7;<br>
+		include $cutepath.'/show_news.php';</p>
+   <p>You may include show_news.php several times, simply don't forget to use
+		$static.</p>
+   <a name="example"></a><h1>Examples</h1>
+   <p>Please go to path/to/example/index.php and take a look at the example file. You will soon understand how everything is working.</p>
+   <p>Normal including. It will show all news from all categories,
+		with default sorting (newest on top):</p>
+   <p class="code"> include $cutepath.'/show_news.php';</p>
+   <p>If you want to show 5 news from category &quot;News&quot; (for example this category's ID is 1) and from category &quot;Articles&quot; (ID 4) as headlines, use this code:</p>
+   <p class="code">$number = 5;<br>
+		$category = '1,4';<br>
+		$template = 'Headlines';<br>
+		include $cutepath.'/show_news.php';</p>
+   <p>A more advanced example: if somebody has opened the full-story,
+		you can show a few (7) headlines from that category below the full story:</p>
+   <p class="code">$number = 5;<br>
+		include $cutepath.'/show_news.php'; <br>
+		<br>
+		if ($id and $ucat){<br>
+		&nbsp;&nbsp;&nbsp;$static['template'] = 'Headlines';<br>
+		&nbsp;&nbsp;&nbsp;$static['number'] = 7;<br>
+		&nbsp;&nbsp;&nbsp;$static['category'] = $ucat;<br>
+		&nbsp;&nbsp;&nbsp;include $cutepath.'/show_news.php'; <br>
+		}</p>
+   <a name="cache"></a><h1>Script optimization</h1>
+   <p>To accelerate the speed of the script and to decrease the server usage it is necessary to activate caching.
+   It is activated by default. To turn it off go to head.php and set <strong>cache</strong> to <em>false</em> at the beginning of the file. It is not recommanded to turn it off as some plugins and functions (especially functions involving categories) query the database and cause unnecessary server traffic.</p>
+   <p>You can set <strong>global_cache</strong> to <em>true</em> if your server is <em>really</em> busy. </p>
+   <a name="rufus"></a><h1>rUFUs / URL management</h1>
+   <p>This part of the script will allow you to change the URLs in whatever way you want.</p>
+   <p>The &quot;heart&quot; of rUFUs is the file urls.ini in the data folder. You can edit this file directly or by going to &quot;Options -&gt; User Friendly Urls&quot; in admin panel.</p>
+	  <p>It is very difficult to understand the way it is working so have a look at an example:</p>
+   <p class="code">[home]<br>
+ post = &quot;{year}/{month}/{day}/{title}.html&quot;<br>
+	<br>
+dosearch = &quot;search{add:do=search}&quot;<br>
+	<br>
+docategory = &quot;category{add:do=category}&quot;<br>
+ category = &quot;category/{categories}&quot;<br>
+	<br>
+dousers = &quot;users{add:do=users}&quot;<br>
+ user = &quot;users/{user:do=users}.html&quot;<br>
+	<br>
+day = &quot;{year}/{month}/{day}&quot;<br>
+ month = &quot;{year}/{month}&quot;<br>
+ year = &quot;{year}&quot;<br>
+	<br>
+[rss]<br>
+ post = &quot;{year}/{month}/{day}/{title}.xml&quot;<br>
+ category = &quot;category/{categories}/rss.xml&quot;<br>
+ user = &quot;users/{user}.xml&quot;<br>
+ feed = &quot;rss.xml&quot;<br>
+	<br>
+[print]<br>
+ post = &quot;{year}/{month}/{day}/{title}.phtml&quot;<br>
+	<br>
+[trackback]<br>
+ post = &quot;{year}/{month}/{day}/{title}.tb&quot;<br><br>
+</p><br>
+   <p>[home] is the file which shows your news. You can change it in Options -&gt; System settings -&gt; &quot;Path to page&quot;.
+		[Something] is the file's name, for example [rss] controls
+		rss.php, [print] controls print.php and so on.</p>
+	<p>If you set rUFUs to <em>yes</em> in Options -&gt; System settings -&gt; you are able to generate a .htaccess file and use search engine friendly urls.
+   <p><strong>Pay attention!</strong> Only set rUFUs to &quot;yes&quot; if your server allows .htaccess files and supports mod_rewrite. Otherwise you will get an error 404. When using rUFUs avoid having "foreign" characters in your categories as this will cause errors.</p>
+   <p>You can add new {tags} which create new rules in the .htaccess file. For example we create the tag {user}:</p>
+   <p class="code">user = &quot;users/{user:do=users}.html&quot;</p>
+   <p>After that you can use links like: http://yoursite.com/users/USER.html (if rufus = no, then links like http://yoursite.com/page.php/users/USER.html), instead of http://yoursite.com/page.php?do=users&amp;user=USER</p>
+   <p>The tag {add} is really usefull too. You can create any condition you like.
+		For example, if we use ?do=users in a link to show a list of users (as in example.php) and the link should be like /users/user.html, and in /users/ is the list.
+		Then we can write something like this:</p>
+   <p class="code">dousers = &quot;users{add:do=users}&quot;</p>
+   <p>This would result in a link like http://yoursite.com/users/ (if rufus = no, then like http://yoursite.com/page.php/users/), instead of http://yoursite.com/page.php?do=users</p>
+   <p>After that you can show the users in your short or full story template like this:</p>
+   <p class="code">{link=home/dousers}</p>
+	  <p>So, you may use {link=file/type} in the templates. <br />
+		
+   <p>List of global types:</p>
+   <p class="code"><strong>post</strong> - news link <br />
+		<strong>category</strong> - category link <br />
+		<strong>user</strong> - user link <br />
+		<strong>day</strong> - day link <br />
+		<strong>month</strong> - month link <br />
+		<strong>year</strong> - year link <br />
+		<strong>feed</strong> - RSS link </p>
+		
+   <p>List of tags:</p>
+   <p class="code"><strong>{id}</strong> - news ID <br />
+		<strong>{year}</strong> - year of news <br />
+		<strong>{month}</strong> - month's number (from 01 till 12) of news
+		<br />
+		<strong>{Month}</strong> - month's name (from jan till dec) of news
+		<br />
+		<strong>{day}</strong> - day (from 01 till 31) of news <br />
+		<strong>{time}</strong> - time (hour:minute:second) of news
+		<br />
+		<strong>{title}</strong> - title of news <br />
+		<strong>{user}</strong> - author of news <br />
+		<strong>{user-id}</strong> - ID of user (only for table users!)
+		<br />
+		<strong>{category-id}</strong> - ID of category <br />
+		<strong>{category}</strong> - name of category (in translit or called in field &quot;Alternative Url&quot;) <br />
+		<strong>{categories}</strong> - category with all parents: /category/sub/our-category
+	  </p>
+	  
+   <h1>rUFUs: search engine friendly links</h1>
+   <p>Advice: follow this hierarchy:</p>
+   <p class="code">[home] <br />
+		post = &quot;{year}/{month}/{day}/{title}.html&quot; <br />
+		user = &quot;users/{user}.html&quot; <br />
+		day = &quot;{year}/{month}/{day}&quot; <br />
+		month = &quot;{year}/{month}&quot; <br />
+		year = &quot;{year}&quot;<br>
+		<strong>category = &quot;{categories}&quot; </strong><br />
+		[rss] <br />
+		post = &quot;{year}/{month}/{day}/{title}.xml&quot; <br />
+		category = &quot;rss.php/category/{categories}/rss.xml&quot; <br />
+		user = &quot;rss.php/users/{user}.xml&quot; <br />
+		feed = &quot;rss.php/rss.xml&quot; <br />
+		[print] <br />
+		post = &quot;{year}/{month}/{day}/{title}.phtml&quot; <br />
+		[trackback] <br />
+		post = &quot;{year}/{month}/{day}/{title}.tb&quot;</p>
+		
+	<p>If you want to have links the old style use something like this:</p>
+    <p align="left" class="code">[home]<br>
+ post = &quot;?id={id}&quot;<br>
+    <br>
+
+ category = &quot;?category={category-id}&quot;<br>
+    <br>
+user = &quot;?user={user}&amp;do=users&quot;<br>
+    <br>
+day = &quot;?year={year}&amp;month={month}&amp;day={day}&quot;<br>
+ month = &quot;?year={year}&amp;month={month}&quot;<br>
+ year = &quot;?year={year}&quot;<br>
+    <br>
+[rss]<br>
+ post = &quot;?id={id}&quot;<br>
+ category = &quot;?category={category-id}&quot;<br>
+ user = &quot;?user={user}&quot;<br>
+ feed = &quot;?&quot;<br>
+    <br>
+[print]<br>
+ post = &quot;?id={id}&quot;<br>
+    <br>
+[trackback]<br>
+ post = &quot;?id={id}&quot;
+</p>
+   <a name="plugins"></a><h1>Plugins</h1>
+   <p>Some words about the plugin &quot;Calendar/Archives/Categories/Title&quot;. There are four features available:
+		cn_calendar(), cn_archives(), cn_category() and cn_title. The first one displays a calendar with your news,
+		the second one lists your archives, the third one lists your categories and the fourth one the &quot;path&quot; of the news in the browser's title.</p>
+	  <p><strong>Pay attention!</strong> These are PHP functions. You have to call them like this:</p>
+   <p class="code">&lt;?=cn_category(); ?&gt;</p>
+   <p>Or with the proper variables like this:</p>
+   <p class="code">&lt;?=cn_category('variable1', 'variable2'); ?&gt;</p>
+   
+   <p><strong>cn_archives()</strong>:</p>
+   <p class="code">cn_archives([template [, sort [, id]]])<br>- <strong>template</strong>
+		is the look of the archives (Default: <em>&lt;a href=&quot;{link}&quot;&gt;{date}
+		({count})&lt;/a&gt;&lt;br /&gt;</em>), <br>&nbsp;&nbsp;{count} (number of news for this month), {date} (for example April 2005), <br>&nbsp;&nbsp;{link} (for example /2005/04/,
+		can be changed in urls.ini category - [home], type - month). <br>
+		- <strong>sort</strong> for example array('author', 'DESC') (Default: array('date', 'DESC'))<br>
+		- <strong>ID</strong> the ID for the cache</p>
+		
+   <p><strong>cn_category()</strong>:</p>   
+   <p class="code">cn_category([prefix [, template [, no_prefix [, level
+		[, id]]]]])<br>- <strong>prefix</strong> it's that, what will be before <strong>template</strong>,
+		but, will be constantly repeated. Default prefix - <em>&amp;nbsp;</em> (empty symbol).<br>- <strong>no-prefix</strong>
+		it is important thing. It directs script to make prefix for categories-parents from which
+		begins all subcategories (default true, <em>no</em> - it means not to &nbsp;&nbsp;apply to prefix).<br>- <strong>template</strong>
+		- as in cn_archive() its appearance. Tags: <br>&nbsp;&nbsp;{id} - its ID of category,
+		 <br>&nbsp;&nbsp;{name} - its name, <br>&nbsp;&nbsp;{url} - its URL (in translit or called in field &quot;Alternative Url&quot;),
+		<br>&nbsp;&nbsp;{icon} - its icon of category. <br> You can put [php]some php function here[/php]. For example: <em>&lt;a
+		href=&quot;[php]cute_get_link($row, category)[/php]&quot;&gt;{name} ([php]count_category_entry({id})[/php])&lt;/a&gt;&lt;br
+		/&gt;</em>. <strong>level</strong> says which <b>category id</b> you want show.
+		Script will show all subcategories of typed ID. <strong>id</strong> - it needs only for cache</p>
+   
+   <p><strong>cn_title()</strong>:</p>
+   <p class="code">cn_title([separator [, direction [, id]]]) - with <strong>separator</strong>, we think, all clear. <strong>direction</strong> shows &quot;from to&quot; begin to end - false, end to begin - true. <strong>id</strong> it's unique ID of including.</p>
+   
+   <p><strong>cn_calendar()</strong> shows a calendar with all your news. CSS for the calendar:</p>
+   <p class="code"><strong>#calendar</strong> - the id for the calendar's table<br>
+	<strong>.month</strong> - the class for the months and links to previous/next month<br>
+	<strong>.weekday</strong> - the class for the weekdays from Monday to Friday<br>
+	<strong>.day</strong> - the class for the days from Monday to Sunday<br>
+	<strong>.weekend</strong> - the class for the days from Saturday to Sunday<br>
+	<strong>.endday</strong> - the class for the last day of the week (Sunday)
+	</p>
+   <p>You can use code like this in your CSS:</p>
+   <p class="code">#calendar {text-align: center;}<br>
+	#calendar .month, #calendar .month a {font-weight: bold;color: #ccc;}<br>
+	#calendar .weekday {color: #ccc;}<br>
+	#calendar .weekday a {color: #ccc;font-weight: bold;}<br>
+	#calendar .day, #calendar .day a {color: #ccc;}<br>
+	#calendar .weekend {color: #c60000;}<br>
+	#calendar .weekend a {color: #c60000;font-weight: bold;}<br>
+	#calendar .endday, #calendar .endday a {color: #c60000;}</p>
+	
+   <a name="functions"></a><h1>Functions</h1>
+   <p>Finally some words about usefull functions in CuteNews.RU</p>
+      <p class="code">category_get_tree([prefix [, template [, no-prefix [, id]]]]) - this function is very similar to cn_category() described above. So we have cn_category() + tag {prefix}, which allows you
+		to use typed prefix in <strong>template</strong>. <strong>Id</strong> is the id of the category-parent</p>
+		<p class="code">category_get_link(id) - <strong>Id</strong> is the number of the category. The function returns a link with all parent categories</p>
+	<p class="code">category_get_children(id) - returns a list of all child categories (&quot;1,2,3&quot;)</p>
+	<p class="code">category_get_title(id [, separator]) - returns the name of a category from its id. <strong>separator</strong> is the character between the names of the categories</p>
+	<p class="code">category_get_id(category) - this function gives the id of a category from its name or URL. <strong>category</strong> - the name of a category or its URL</p>
+   <p>Good luck!</p>
+  </td>
+  </tr>
+</table>
+</body>
+</html>
