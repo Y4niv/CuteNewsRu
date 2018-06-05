@@ -1,0 +1,135 @@
+body, td {
+	font-family: tahoma, verdana, arial, helvetica, sans-serif;
+	font-size: 8pt;
+}
+
+body {
+	background: #4B3625;
+}
+
+.dateheader, .dateheader a:link, .dateheader a:hover, .dateheader a:visited, .dateheader a:active {
+	font-size: 10px;
+}
+
+.error_message {
+	font-weight: bold;
+	background-color: #4B3625;
+	color: #fff;
+	padding: 5px;
+	text-align: center;
+}
+
+h3, h3 a:link, h3 a:hover, h3 a:visited, h3 a:active {
+	color: #666;
+	font-size: 15px;
+}
+
+h4 {
+	color: #666;
+	font-size: 10px;
+}
+
+.logo {
+	font-size: 36px;
+	text-transform: uppercase;
+	font-weight: bold;
+}
+
+#calendar, #calendar a {
+    text-align: center;
+}
+
+#calendar .month, #calendar .month a {
+    text-align: left;
+    padding: 2px;
+    color: #000;
+    font-size: 12;
+    font-weight: bold;
+}
+
+#calendar .weekday, #calendar .weekend {
+    font-size: 12;
+    font-weight: bold;
+    padding: 2px;
+}
+
+#calendar .weekday, #calendar .day {
+	color: #000;
+	padding: 2px;
+}
+
+#calendar .weekday a {
+	font-size: 11;
+	color: #000;
+	background: #fff;
+	padding: 2px;
+}
+
+#calendar .day a {
+	color: #000;
+	font-weight: bold;
+	padding: 2px;
+}
+
+#calendar .weekend, #calendar .endday {
+	color: #9F0000;
+	padding: 2px;
+}
+
+#calendar .weekend a {
+	font-size: 11;
+	color: #9F0000;
+	background: #fff;
+	padding: 2px;
+}
+
+#calendar .endday a {
+	color: #9F0000;
+	font-weight: bold;
+	padding: 2px;
+}
+
+.rights
+    {
+    font-size: 11;
+    color: #F2EFCB;
+}
+
+.p {
+    font-size: 11;
+}
+
+.support {
+    font-size: 17;
+}
+
+.nav, .nav a:link, .nav a:hover, .nav a:visited, .nav a:active {
+	background: #000;
+	font-size: 12;
+	font-weight: bold;
+	text-align: center;
+	word-spacing: 50;
+	color: #A9A889;
+}
+
+.name {
+    font-family: Times new roman;
+    color: 80806A;
+    font-size: 48px;
+    text-indent: 30pt;
+    vertical-align: text-bottom;
+    }
+
+a:active, a:visited, a:link {
+	color: #446488;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #00004f;
+	text-decoration: none;
+}
+
+.hilite {
+	background: #FFFF00;
+}
