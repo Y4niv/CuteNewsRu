@@ -1,0 +1,104 @@
+html { margin: 0px; padding: 0px; }
+body { margin: 0px; padding: 0px; font-size: 12px; color: #000; font-family: verdana, arial; background-color: #fff; }
+a { color: #036; text-decoration: none; }
+a:link { color: #036; text-decoration: none; }
+a:visited { color: #54622d; text-decoration: none; }
+a:active { color: #54622d; }
+a:hover { color: #54622d; }
+img { border: 0px; }
+
+table { font-size: 12px; color: #000; font-family: verdana, arial; }
+p { padding-right: 20px; padding-left: 20px; padding-bottom: 5px; margin: 0px; padding-top: 5px; }
+li { font: 12px/15px arial, helvetica, verdana, sans-serif; margin-left: 15px; }
+blockquote { font: 12px/15px arial, helvetica, verdana, sans-serif; }
+form { display: inline; }
+input { font-size: 12px; }
+
+h1 { font: bold 16px/18px arial, sans-serif; padding: 0px; padding-top: 10px; margin: 5px 0px 2px 10px; }
+h1 a { color: #000; text-decoration: none; }
+h2, h4  { font: 11px/14px arial, helvetica, sans-serif; padding: 0px; margin: 2px 0px 2px 10px;	}
+h3  { font: bold 16px/18px arial, helvetica, sans-serif; padding: 5px; margin: 5px 0px 2px 10px; }
+h5 { font: bold 16px/18px arial, sans-serif; padding: 5px; padding-top: 0px; }
+
+.article { border-bottom: 1px solid #003366; padding-bottom: 10px; font: 12px; line-height: 18px; }
+.logo { font: bold 11px/11px arial, sans-serif; padding-right: 15px; padding-left: 15px; padding-bottom: 5px; padding-top: 5px; margin: 0px; text-transform: uppercase; color: #fff; background-color: #003366; text-align: right; }
+.logo a, .logo a:link, .logo a:visited, .logo a:active, .logo a:active { color: #fff; background-color: transparent; text-decoration: none }
+.links { font-size: 11px; border-bottom: 1px solid #003366; }
+
+#left { overflow: auto; padding-right: 0px; padding-left: 0px; left: 0px; padding-bottom: 0px; margin: 0px; width: 200px; color: #564b47; padding-top: 0px; position: absolute; background: #f7f6f4; border-right: #003366 1px solid; position: absolute; top: 22px;}
+#content { padding: 0px; margin: 0px; margin-left: 199px; border-left: #003366 1px solid; }
+
+.cn_comment_even { font-size:12px Arial, Helvetica, Verdana, sans-serif; margin: 0px; padding: 10px; border-bottom: #003366 1px solid; background-color: #fff; }
+.cn_comment_odd { font-size: 12px Arial, Helvetica, Verdana, sans-serif; margin: 0px; padding: 10px; border-bottom: #003366 1px solid; background-color: #fff; line-height: 18px; }
+
+/*
+стили для календаря:
+*/
+#calendar {
+	text-align: center;
+	font-size: 10px;
+}
+#calendar .month, #calendar .month a {
+	font-weight: bold;
+	color: #ccc;
+	text-align: left;
+}
+#calendar .weekday {
+	border: solid 1px #fff;
+	padding: 2px;
+	color: #666;
+	background: #fff;
+}
+#calendar .weekday a {
+	color: #666;
+	font-weight: bold;
+	border: solid 1px #fff;
+	text-decoration: none;
+}
+#calendar .day {
+	border: solid 1px #fff;
+	padding: 2px;
+	color: #666;
+}
+#calendar .day a {
+	color: #666;
+	font-weight: bold;
+	text-decoration: none;
+}
+#calendar .weekend {
+	border: solid 1px #fff;
+	padding: 2px;
+	color: #804040;
+	background: #fff;
+}
+#calendar .weekend a {
+	color: #804040;
+	font-weight: bold;
+	border: solid 1px #fff;
+	text-decoration: none;
+}
+#calendar .endday {
+	border: solid 1px #fff;
+	padding: 2px;
+	color: #804040;
+}
+#calendar .endday a {
+	color: #804040;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+/* подсветка найденного текста при поиске */
+.hilite {
+font-weight: bold;
+background-color: #F8F8F8;
+color: #ff0000;
+}
+
+.error_message {
+font-weight: bold;
+background-color: #003366;
+color: #fff;
+padding: 5px;
+text-align: center;
+}
