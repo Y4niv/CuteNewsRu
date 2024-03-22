@@ -4,4 +4,4 @@ CuteNews.RU is a powerful content management system designed in PHP, uses either
 
 For now I've uploaded the vanilla version 2.5.4 (for archiving/backup) which should work on PHP versions up to 5.4, my plans are adding some of the plugins I've wrote and some patches, fixes and upgrades that I've done over the years of using this CMS. Later on when I get the time I'de love to add all the fixes needed for it to run on newer PHP versions.
 
-More info can be found [here](http://forum.cutenewsru.com).
+More info can be found [here](https://web.archive.org/web/20220516082552/http://forum.cutenewsru.com/).
